@@ -1,0 +1,74 @@
+{
+  "batch_size": 64,
+  "cf_loss": {
+    "C": 0.5,
+    "acc_tops": [
+      1,
+      5
+    ],
+    "call": "DistillationBasedLoss",
+    "global_scale": 0.9090909090909091,
+    "maxprob": 0.5,
+    "n_exits": 11
+  },
+  "cf_net": {
+    "btneck_widths": [
+      4,
+      4,
+      4
+    ],
+    "call": "MsdNet",
+    "exit_width": 128,
+    "in_shape": 32,
+    "n_exits": 11,
+    "n_scales": 3,
+    "nlayers_between_exits": 2,
+    "nlayers_to_exit": 4,
+    "nplanes_addh": 1,
+    "nplanes_init": 1,
+    "nplanes_mulv": [
+      6,
+      12,
+      24
+    ],
+    "out_dim": 100,
+    "plane_reduction": 0.5,
+    "prune": "min"
+  },
+  "cf_opt": {
+    "call": "SGD",
+    "lr": 0.1,
+    "momentum": 0.9,
+    "nesterov": true,
+    "weight_decay": 0.0001
+  },
+  "cf_scheduler": {
+    "call": "MultiStepLR",
+    "gamma": 0.1,
+    "milestones": [
+      150,
+      225
+    ]
+  },
+  "cf_trn": {
+    "augment": true,
+    "call": "Cifar100",
+    "n_per_class": 150,
+    "nval_per_class": 50,
+    "seed": 0
+  },
+  "cf_val": {
+    "augment": false,
+    "call": "Cifar100",
+    "n_per_class": 150,
+    "nval_per_class": 50,
+    "seed": 0
+  },
+  "gpu": 0,
+  "n_epochs": 300,
+  "parent_snapshot": "",
+  "save_interval": 0,
+  "seed": 127170693,
+  "snapshot_name": "test:0",
+  "val_batch_size": 250
+}

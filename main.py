@@ -17,7 +17,7 @@ print("Loading Datasets")
 transforms = datasets.get_transforms()
 # Convert hyperparameters so they load into this directly (and the above)!
 # Need to return validation stuff as well!
-train_loader, test_loader = datasets.get_dataloader("cifar10", 10, transforms)
+train_loader, test_loader = datasets.get_dataloader("cifar10", 64, transforms, download = False)
 
 # Load the Network
 print("Creating Network")
@@ -33,7 +33,7 @@ optimizer = to_train.get_optimizer(model,hyperparameters["optimizer"])
 # Get Scheduler
 scheduler = to_train.get_scheduler(optimizer,hyperparameters["scheduler"])
 # Train Loop (do i need to return model?)
-model = train_loop(model,optimizer,scheduler,(train_loader,test_loader),loss_fn) # model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gpu = -1
+model = train_loop(model,optimizer,scheduler,(train_loader,test_loader),loss_fn, gpu = 0) # model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gpu = -1
 
 # Evaluate the Network on Test
 

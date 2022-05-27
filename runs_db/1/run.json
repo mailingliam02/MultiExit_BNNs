@@ -1,0 +1,99 @@
+{
+  "artifacts": [],
+  "command": "train",
+  "experiment": {
+    "base_dir": "/vol/bitbucket/lrc121/ind_proj/MultiExit_BNNs",
+    "dependencies": [
+      "numpy==1.22.1",
+      "sacred==0.8.2",
+      "torch==1.10.2+cu113"
+    ],
+    "mainfile": "train.py",
+    "name": "train",
+    "repositories": [
+      {
+        "commit": "1b93fe1cb6c06bc4c4fbdb2a2ffe2fad3a0ebba2",
+        "dirty": false,
+        "url": "https://github.com/mailingliam02/MultiExit_BNNs.git"
+      },
+      {
+        "commit": "1b93fe1cb6c06bc4c4fbdb2a2ffe2fad3a0ebba2",
+        "dirty": false,
+        "url": "https://github.com/mailingliam02/MultiExit_BNNs.git"
+      },
+      {
+        "commit": "1b93fe1cb6c06bc4c4fbdb2a2ffe2fad3a0ebba2",
+        "dirty": false,
+        "url": "https://github.com/mailingliam02/MultiExit_BNNs.git"
+      }
+    ],
+    "sources": [
+      [
+        "main.py",
+        "_sources/main_2520e3b81e3d784c916b58970159fd18.py"
+      ],
+      [
+        "train.py",
+        "_sources/train_e5a1a10272652972ada37e129d36c77d.py"
+      ],
+      [
+        "utils.py",
+        "_sources/utils_6dcebde5f48d32e8d29205fb562e61d7.py"
+      ]
+    ]
+  },
+  "fail_trace": [
+    "Traceback (most recent call last):\n",
+    "  File \"/vol/bitbucket/lrc121/myvenv/lib/python3.8/site-packages/sacred/config/captured_function.py\", line 42, in captured_function\n    result = wrapped(*args, **kwargs)\n",
+    "  File \"/vol/bitbucket/lrc121/ind_proj/MultiExit_BNNs/train.py\", line 54, in train\n    trn_iter = Data(split='train', batch_size=batch_size, gpu=main_gpu,\n",
+    "  File \"/vol/bitbucket/lrc121/ind_proj/MultiExit_BNNs/main.py\", line 472, in __init__\n    dataset = self.Dset(str(DATA_DIR), split in ['train', 'val'], transform,\n",
+    "  File \"/vol/bitbucket/lrc121/ind_proj/MultiExit_BNNs/main.py\", line 240, in __init__\n    self.TARGETS = self.train_labels if self.train else self.test_labels\n",
+    "  File \"/vol/bitbucket/lrc121/myvenv/lib/python3.8/site-packages/torch/utils/data/dataset.py\", line 83, in __getattr__\n    raise AttributeError\n",
+    "AttributeError\n"
+  ],
+  "heartbeat": "2022-05-26T09:40:46.834737",
+  "host": {
+    "ENV": {},
+    "cpu": "Intel Xeon Processor (Skylake)",
+    "gpus": null,
+    "hostname": "cloud-vm-43-99.doc.ic.ac.uk",
+    "os": [
+      "Linux",
+      "Linux-5.13.0-35-generic-x86_64-with-glibc2.29"
+    ],
+    "python_version": "3.8.10"
+  },
+  "meta": {
+    "command": "train",
+    "options": {
+      "--beat-interval": null,
+      "--capture": null,
+      "--comment": null,
+      "--debug": false,
+      "--enforce_clean": false,
+      "--file_storage": null,
+      "--force": false,
+      "--help": false,
+      "--loglevel": null,
+      "--mongo_db": null,
+      "--name": null,
+      "--pdb": false,
+      "--print-config": false,
+      "--priority": null,
+      "--queue": false,
+      "--s3": null,
+      "--sql": null,
+      "--tiny_db": null,
+      "--unobserved": false,
+      "COMMAND": null,
+      "UPDATE": [],
+      "help": false,
+      "with": false
+    }
+  },
+  "resources": [],
+  "result": null,
+  "start_time": "2022-05-26T09:39:41.872988",
+  "status": "FAILED",
+  "stop_time": "2022-05-26T09:40:46.838538"
+}

@@ -45,6 +45,8 @@ class _MultiExitAccuracy(_Loss):
                 acc_ens[i] = binary_accuracy(ensemble, y, apply_sigmoid=False)
             else:
                 ensemble += F.softmax(logits, dim=1)
+                # print(type(multiclass_accuracies(logits, y, self._acc_tops)))
+                # print(type(multiclass_accuracies(logits, y, self._acc_tops)[0]))
                 acc_clf[i] = multiclass_accuracies(logits, y, self._acc_tops)
                 acc_ens[i] = multiclass_accuracies(ensemble, y, self._acc_tops)
                 

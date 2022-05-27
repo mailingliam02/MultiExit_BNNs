@@ -30,7 +30,7 @@ def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = t
             last_loss = running_loss / 1000 # loss per batch
             print('  batch {} loss: {}'.format(i + 1, last_loss))
             running_loss = 0.
-    return last_loss, loss_fn.trn_metrics()
+    return last_loss
 
 # From https://gitlab.doc.ic.ac.uk/lab2122_spring/DL_CW_1_lrc121/-/blob/master/dl_cw_1.ipynb
 def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gpu = -1):
@@ -47,9 +47,10 @@ def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gp
     train_loader, val_loader = data_loaders
     model = model.to(device=device)  # move the model parameters to CPU/GPU
     for e in range(epochs):
-        last_loss, trn_metrics = train_single_epoch(model,train_loader,optimizer,loss_fn, device)
+        last_loss = train_single_epoch(model,train_loader,optimizer,loss_fn, device)
         val_metrics = validate_model(loss_fn, model, val_loader, gpu)
-        print(tab_str(e, last_loss, *trn_metrics))
+        # had issues with trn_metrics, removed
+        print(tab_str(e, last_loss))
         print(tab_str('', 0.0, *val_metrics))
         scheduler.step()
     return model
