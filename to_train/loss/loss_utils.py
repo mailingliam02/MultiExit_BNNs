@@ -18,7 +18,8 @@ def multiclass_accuracies(scores, y, tops: Tuple[int]):
     if not any(labelled):
         return [1.0 for i in tops]
     hit = (pred[labelled] == y[labelled, None])
-    topk_acc = hit.float().cumsum(dim=1).mean(dim=0)
+    # Added a cpu() call to avoid type error when converting to numpy later
+    topk_acc = hit.float().cumsum(dim=1).mean(dim=0).cpu()
     return [topk_acc[i-1] for i in tops]
 
 # Exits twice, once here and once under models   
