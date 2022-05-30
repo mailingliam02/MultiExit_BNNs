@@ -10,18 +10,19 @@ from torch.utils.data.sampler import SubsetRandomSampler
 def get_dataloader(hyperparameters):
     dataset_loader = DatasetLoader(dataset_name= hyperparameters["dataset_name"], 
         batch_size = hyperparameters["batch_size"], augment = hyperparameters["augment"], 
-        random_seed = 42)
+        random_seed = 42, valid_split = hyperparameters["val_split"])
     train_loader, val_loader, test_loader = dataset_loader.get_dataloaders()
     return train_loader, val_loader, test_loader 
 
 # Inspired by https://gist.github.com/kevinzakka/d33bf8d6c7f06a9d8c76d97a7879f5cb
 class DatasetLoader:
-    def __init__(self,dataset_name= "cifar10", batch_size = (64,250,250), augment = True, random_seed = 42):
+    def __init__(self,dataset_name= "cifar10", batch_size = (64,250,250), augment = True, random_seed = 42, valid_split = 0.2):
         self.dataset_name = dataset_name
         self.train_batch_size = batch_size[0]
         self.val_batch_size = batch_size[1]
         self.test_batch_size = batch_size[2]
         self.augment = augment
+        self.valid_size = valid_split
         self.random_seed = random_seed
         self.data_dir = "./data/"+self.dataset_name
         self._get_transforms()
@@ -36,6 +37,7 @@ class DatasetLoader:
         if self.dataset_name in datasets_without_val:
             return True
         else:
+            self.shuffle = True
             return False
 
     def _get_transforms(self):
@@ -104,9 +106,9 @@ class DatasetLoader:
             val_loader = torch.utils.data.DataLoader(self.val_set,batch_size = self.val_batch_size, sampler=self.train_sampler,
                 num_workers=1, pin_memory=True)
         else:
-            train_loader = torch.utils.data.DataLoader(self.train_set,batch_size = self.train_batch_size, shuffle = True,
+            train_loader = torch.utils.data.DataLoader(self.train_set,batch_size = self.train_batch_size, shuffle = self.shuffle,
                 num_workers=1, pin_memory=True)
-            val_loader = torch.utils.data.DataLoader(self.val_set,batch_size = self.val_batch_size, shuffle = True,
+            val_loader = torch.utils.data.DataLoader(self.val_set,batch_size = self.val_batch_size, shuffle = self.shuffle,
                 num_workers=1, pin_memory=True)
         test_loader = torch.utils.data.DataLoader(self.test_set,batch_size = self.test_batch_size, pin_memory = True)
         return train_loader, val_loader, test_loader

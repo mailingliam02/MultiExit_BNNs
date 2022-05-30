@@ -93,6 +93,7 @@ def get_loader_hyperparameters():
     hyperparameters = dict(dataset_name = "cifar10",
         batch_size = (64,250,250), #(train, val, test)
         augment = True,
+        val_split = 0.2,
         )
     return hyperparameters
 
