@@ -35,6 +35,7 @@ class DatasetLoader:
     def _sampler_needed(self):
         datasets_without_val = ["cifar10","cifar100","imagenet"]
         if self.dataset_name in datasets_without_val:
+            self.shuffle = False
             return True
         else:
             self.shuffle = True
