@@ -7,7 +7,7 @@ from torchvision import datasets
 from torchvision import transforms
 from torch.utils.data.sampler import SubsetRandomSampler
 
-def get_dataloaders(hyperparameters):
+def get_dataloader(hyperparameters):
     dataset_loader = DatasetLoader(dataset_name= hyperparameters["dataset_name"], 
         batch_size = hyperparameters["batch_size"], augment = hyperparameters["augment"], 
         random_seed = 42)
