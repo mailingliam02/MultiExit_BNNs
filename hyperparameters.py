@@ -5,30 +5,23 @@ def get_hyperparameters():
     network_hyperparameters = get_network_hyperparameters()
     # Losses
     loss_hyperparameters = get_loss_hyperparameters(network_hyperparameters["n_exits"])
+    test_loss_hyperparameters = get_test_hyperparameters(network_hyperparameters["n_exits"])
     # Train and Val 
-    train_hyperparameters, val_hyperparameters = get_train_val_hyperparameters()
+    loader_hyperparameters = get_loader_hyperparameters()
     # Optimizer and Scheduler
     opt_hyperparameters, sched_hyperparameters = get_opt_sched_hyperparameters()
-    test_hyperparameters, test_loss_hyperparameters, test_batch_size = get_test_hyperparameters()
-    batch_size = 64
-    val_batch_size = 250
-    n_epochs = 300
+    n_epochs = 1
     gpu = 0
     
     hyperparameters = dict(
         network = network_hyperparameters,
         loss = loss_hyperparameters,
-        train = train_hyperparameters,
-        val = val_hyperparameters,
         optimizer = opt_hyperparameters,
         scheduler = sched_hyperparameters,
-        batch_size = batch_size,
-        val_batch_size = val_batch_size,
         n_epochs = n_epochs,
-        test = test_hyperparameters,
         test_loss = test_loss_hyperparameters,
-        test_batch_size = test_batch_size,
         gpu = gpu,
+        loaders = loader_hyperparameters,
         )
     return hyperparameters
 
@@ -69,7 +62,6 @@ def get_loss_hyperparameters(num_exits, loss_type = "distillation_annealing"):
             call = 'DistillationLossConstTemp',
             n_exits = num_exits,
             acc_tops = [1, 5],
-            
             C = 0.5,
             T = 4.0,
             global_scale = 2.0 * 5/num_exits,
@@ -81,18 +73,6 @@ def get_loss_hyperparameters(num_exits, loss_type = "distillation_annealing"):
             acc_tops = [1, 5],
         )
     return loss
-
-def get_train_val_hyperparameters():
-    cf_trn = dict(          # training set parameters
-    call = 'Cifar100',
-    n_per_class = 150,  # number of images per class (including validation)
-    nval_per_class = 50,
-    augment = True,     # data augmentation
-    seed = 0,
-    )
-    cf_val = cf_trn.copy()
-    cf_val['augment'] = False
-    return cf_trn, cf_val
 
 def get_opt_sched_hyperparameters():
     cf_opt = dict(          # optimization method
@@ -109,16 +89,18 @@ def get_opt_sched_hyperparameters():
     )
     return cf_opt, cf_scheduler
 
-def get_test_hyperparameters():
-    cf_test = dict(  # test dataset
-        call = 'Cifar100',
-        seed = 0,
-    )
-    
+def get_loader_hyperparameters():
+    hyperparameters = dict(dataset_name = "cifar10",
+        batch_size = (64,250,250), #(train, val, test)
+        augment = True,
+        )
+    return hyperparameters
+
+
+def get_test_hyperparameters(n_exits):
     cf_loss = dict(  # evaluation metric
         call = 'MultiExitAccuracy',
-        n_exits = 11,
+        n_exits = n_exits,
         acc_tops = (1, 5),
     )
-    batch_size = 250
-    return cf_test, cf_loss, batch_size
+    return cf_loss

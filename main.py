@@ -18,7 +18,7 @@ print("Loading Datasets")
 transforms = datasets.get_transforms()
 # Convert hyperparameters so they load into this directly (and the above)!
 # Need to return validation stuff as well!
-train_loader, test_loader = datasets.get_dataloader("cifar10", 64, transforms, download = False)
+train_loader, val_loader, test_loader = datasets.get_dataloaders(hyperparameters["loaders"])
 
 # Load the Network
 print("Creating Network")
@@ -34,11 +34,12 @@ optimizer = to_train.get_optimizer(model,hyperparameters["optimizer"])
 # Get Scheduler
 scheduler = to_train.get_scheduler(optimizer,hyperparameters["scheduler"])
 # Train Loop (do i need to return model?)
-model = train_loop(model,optimizer,scheduler,(train_loader,test_loader),loss_fn, gpu = hyperparameters["gpu"], epochs = hyperparameters["n_epochs"]) # model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gpu = -1
+model = train_loop(model,optimizer,scheduler,(train_loader,val_loader),loss_fn, gpu = hyperparameters["gpu"], epochs = hyperparameters["n_epochs"]) # model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gpu = -1
 
 # Evaluate the Network on Test
 test_loss_fn = to_train.get_loss_function(hyperparameters["test_loss"])
-evaluate(hyperparameters["test"], test_loss_fn, test_loader,model,hyperparameters["gpu"])
+# loss_fn, test_iter, model, gpu
+evaluate(test_loss_fn, test_loader,model,hyperparameters["gpu"])
 
 # Access predict via to_train.predict
 # Need to define acc or f1 somewhere
