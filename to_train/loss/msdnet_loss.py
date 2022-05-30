@@ -88,3 +88,6 @@ class DistillationLossConstTemp(_MultiExitAccuracy):
         adj_maxprob = self._cache['prob_t'].max(dim=1)[0].mean()
         return out + [adj_maxprob]
 
+class MultiExitAccuracy(_MultiExitAccuracy): 
+    def __init__(self, n_exits, acc_tops=(1,)):
+        super().__init__(n_exits, acc_tops)

@@ -9,10 +9,11 @@ def get_hyperparameters():
     train_hyperparameters, val_hyperparameters = get_train_val_hyperparameters()
     # Optimizer and Scheduler
     opt_hyperparameters, sched_hyperparameters = get_opt_sched_hyperparameters()
-    
+    test_hyperparameters, test_loss_hyperparameters, test_batch_size = get_test_hyperparameters()
     batch_size = 64
     val_batch_size = 250
     n_epochs = 300
+    gpu = 0
     
     hyperparameters = dict(
         network = network_hyperparameters,
@@ -23,7 +24,11 @@ def get_hyperparameters():
         scheduler = sched_hyperparameters,
         batch_size = batch_size,
         val_batch_size = val_batch_size,
-        n_epochs = n_epochs
+        n_epochs = n_epochs,
+        test = test_hyperparameters,
+        test_loss = test_loss_hyperparameters,
+        test_batch_size = test_batch_size,
+        gpu = gpu,
         )
     return hyperparameters
 
@@ -103,3 +108,17 @@ def get_opt_sched_hyperparameters():
     gamma = 0.1
     )
     return cf_opt, cf_scheduler
+
+def get_test_hyperparameters():
+    cf_test = dict(  # test dataset
+        call = 'Cifar100',
+        seed = 0,
+    )
+    
+    cf_loss = dict(  # evaluation metric
+        call = 'MultiExitAccuracy',
+        n_exits = 11,
+        acc_tops = (1, 5),
+    )
+    batch_size = 250
+    return cf_test, cf_loss, batch_size
