@@ -21,7 +21,7 @@ class DatasetLoader:
         self.train_batch_size = batch_size[0]
         self.val_batch_size = batch_size[1]
         self.test_batch_size = batch_size[2]
-        self.augment = augment
+        self.augment = False #
         self.valid_size = valid_split
         self.random_seed = random_seed
         self.data_dir = "./data/"+self.dataset_name
@@ -43,10 +43,10 @@ class DatasetLoader:
 
     def _get_transforms(self):
         if self.dataset_name == "cifar10":
-            self.mean=[0.4914, 0.4822, 0.4465],
-            self.std=[0.2023, 0.1994, 0.2010], 
+            self.mean=[0.4914, 0.4822, 0.4465]
+            self.std=[0.2023, 0.1994, 0.2010]
         
-        normalize = transforms.Normalize(self.mean,self.std)
+        normalize = transforms.Normalize(mean = self.mean,std = self.std)   
         self.val_transforms = transforms.Compose([
             transforms.ToTensor(),
             normalize,
@@ -74,15 +74,15 @@ class DatasetLoader:
         if self.dataset_name == "cifar10":
             self.train_set = datasets.CIFAR10(
                 root=self.data_dir, train=True,
-                download=True, transform=self.train_transforms,
+                download=False, transform=self.train_transforms,
             )
             self.val_set = datasets.CIFAR10(
                 root=self.data_dir, train=True,
-                download=True, transform=self.val_transforms,
+                download=False, transform=self.val_transforms,
             )
             self.test_set = datasets.CIFAR10(
                 root=self.data_dir, train=False,
-                download=True, transform=self.test_transforms,
+                download=False, transform=self.test_transforms,
             )
         return None
     
