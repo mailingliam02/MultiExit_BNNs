@@ -20,10 +20,12 @@ class _Loss:
     
 class _MultiExitAccuracy(_Loss):
     def __init__(self, n_exits, acc_tops=(1,), _binary_clf=False):
+        # Hyperparameters
         self.n_exits = n_exits
         self._binary_clf = _binary_clf
         self._acc_tops = acc_tops
         self._cache = dict()
+        # Creating metric for each top accuracy for each classifier
         self.metric_names = [f'acc{i}_avg' for i in acc_tops]
         for i in acc_tops:
             self.metric_names += [f'acc{i}_clf{k}' for k in range(n_exits)]
@@ -34,10 +36,11 @@ class _MultiExitAccuracy(_Loss):
         raise NotImplementedError
 
     def _metrics(self, logits_list, y):
+        # Init results arrays
         ensemble = torch.zeros_like(logits_list[0])
         acc_clf = np.zeros((self.n_exits, len(self._acc_tops)))
         acc_ens = np.zeros((self.n_exits, len(self._acc_tops)))
-        
+
         for i, logits in enumerate(logits_list):
             if self._binary_clf:
                 ensemble = ensemble*i/(i+1) + F.sigmoid(logits)/(i+1)

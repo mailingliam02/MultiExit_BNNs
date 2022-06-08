@@ -30,14 +30,18 @@ class MsdTransition(nn.Module):
 class MsdJoinConv(nn.Module):
     def __init__(self, n_in, n_in_down, n_out, btneck, btneck_down):
         super().__init__()
+        # Creates the strided convolution operation
         if n_in_down:
             assert n_out % 2 == 0
             n_out //= 2
             self.conv_down = self._btneck(n_in_down, n_out, stride=2,
                                           btneck=btneck_down)
+        # Creates the standard convolution operation
         self.conv = self._btneck(n_in, n_out, stride=1, btneck=btneck)
 
     def _btneck(self, n_in, n_out, stride, btneck:int):
+        # Bottle neck which specifies whether to have two Convs or just 1
+        # Not sure where this is discussed in papers
         if btneck:
             n_mid = min(n_in, btneck * n_out)
             return nn.Sequential(
@@ -47,7 +51,9 @@ class MsdJoinConv(nn.Module):
             return ConvBnRelu2d(n_in, n_out, 3, stride=stride, padding=1)
 
     def forward(self, x1, x2, x_down):
+        # Identity x^s_l-1 and regular convolution h(x^s_l)
         out = [x1, self.conv(x2)]
+        # Strided convolution h~(x^s-1_l)
         out += [self.conv_down(x_down)] if x_down is not None else []
         return torch.cat(out, dim=1)
 

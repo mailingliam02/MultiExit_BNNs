@@ -4,7 +4,7 @@ def get_hyperparameters():
     # Main
     model_type = "msdnet"
     n_epochs = 1
-    gpu = -1
+    gpu = 0
 
     # Network
     network_hyperparameters = get_network_hyperparameters(model_type)
@@ -43,9 +43,8 @@ def get_network_hyperparameters(model_type):
             nplanes_addh = 1,
             nplanes_init = 1,
             prune = 'min',
-            plane_reduction = 0.5,
-            exit_width = 128,
-            btneck_widths = [4, 4, 4],
+            plane_reduction = 0.5, # Try this with 0 to avoid the halving
+            exit_width = 128, # same as 128 dim 3x3 filters in exit?
             )
     return hyperparams
 
@@ -58,9 +57,10 @@ def get_loss_hyperparameters(num_exits, model_type,loss_type = "distillation_ann
             n_exits = num_exits,
             acc_tops = [1, 5],
             
-            C = 0.5,
-            maxprob = 0.5,
-            global_scale = 2.0 * 5/num_exits,
+            C = 0.5, # Confidence Limit (?)
+            maxprob = 0.5, 
+            global_scale = 2.0 * 5/num_exits, # Not mentioned in paper
+            # Temperature multiplier is 1.05 by default
             )
         elif loss_type == "distillation_constant":
             loss = dict(       # distillation-based training with constant
@@ -86,7 +86,7 @@ def get_loss_hyperparameters(num_exits, model_type,loss_type = "distillation_ann
 def get_opt_sched_hyperparameters():
     cf_opt = dict(          # optimization method
     call = 'SGD',
-    lr = 0.1,
+    lr = 0.5, # Note this is from Paper 9 (Paper 10 used 0.1)
     momentum = 0.9,
     weight_decay = 1e-4,
     nesterov = True,
@@ -99,10 +99,10 @@ def get_opt_sched_hyperparameters():
     return cf_opt, cf_scheduler
 
 def get_loader_hyperparameters():
-    hyperparameters = dict(dataset_name = "cifar10",
+    hyperparameters = dict(dataset_name = "cifar100",
         batch_size = (64,250,250), #(train, val, test)
         augment = True,
-        val_split = 0.2,
+        val_split = 0.1,
         )
     return hyperparameters
 
@@ -112,6 +112,6 @@ def get_test_hyperparameters(n_exits, model_type):
         cf_loss = dict(  # evaluation metric
             call = 'MultiExitAccuracy',
             n_exits = n_exits,
-            acc_tops = (1, 5),
+            acc_tops = (5),
         )
     return cf_loss

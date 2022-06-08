@@ -8,7 +8,7 @@ from torchvision import transforms
 from torch.utils.data.sampler import SubsetRandomSampler
 
 def get_dataloader(hyperparameters):
-    dataset_loader = DatasetLoader(dataset_name= hyperparameters["dataset_name"], 
+    dataset_loader = DatasetLoader(dataset_name = hyperparameters["dataset_name"], 
         batch_size = hyperparameters["batch_size"], augment = hyperparameters["augment"], 
         random_seed = 42, valid_split = hyperparameters["val_split"])
     train_loader, val_loader, test_loader = dataset_loader.get_dataloaders()
@@ -45,6 +45,9 @@ class DatasetLoader:
         if self.dataset_name == "cifar10":
             self.mean=[0.4914, 0.4822, 0.4465]
             self.std=[0.2023, 0.1994, 0.2010]
+        elif self.dataset_name == "cifar100":
+            self.mean=[0.5071, 0.4865, 0.4409]
+            self.std=[0.2673, 0.2564, 0.2762]
         
         normalize = transforms.Normalize(mean = self.mean,std = self.std)   
         self.val_transforms = transforms.Compose([
@@ -58,7 +61,7 @@ class DatasetLoader:
         if self.augment:
             self.train_transforms = transforms.Compose([
                 transforms.RandomCrop(32, padding=4),
-                transforms.RandomHorizontalFlip(),
+                transforms.RandomHorizontalFlip(p=0.5),
                 transforms.ToTensor(),
                 normalize,
             ])
@@ -81,6 +84,19 @@ class DatasetLoader:
                 download=False, transform=self.val_transforms,
             )
             self.test_set = datasets.CIFAR10(
+                root=self.data_dir, train=False,
+                download=False, transform=self.test_transforms,
+            )
+        if self.dataset_name == "cifar100":
+            self.train_set = datasets.CIFAR100(
+                root=self.data_dir, train=True,
+                download=False, transform=self.train_transforms,
+            )
+            self.val_set = datasets.CIFAR100(
+                root=self.data_dir, train=True,
+                download=False, transform=self.val_transforms,
+            )
+            self.test_set = datasets.CIFAR100(
                 root=self.data_dir, train=False,
                 download=False, transform=self.test_transforms,
             )
