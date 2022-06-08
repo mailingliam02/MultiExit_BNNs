@@ -206,7 +206,6 @@ class MsdNet(_TraceInForward):
         max_block = max(self._execute_exits)
         logits = []
         x = TransientDict(x=x, _keep=keep_layers)
-        print(x)
         for i in range(max_block+1):
             # Results from each block 
             # list with each element being output for each scale

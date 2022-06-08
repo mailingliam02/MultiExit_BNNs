@@ -10,6 +10,7 @@ def evaluate(loss_fn, test_iter, model, gpu):
     print(tab_str(*val_metrics))
     # Log
     log(loss_metrics_string,val_metrics)
+    return val_metrics
 
 def log(loss_metrics,val_metrics):
     float_types = (float, torch.FloatTensor, torch.cuda.FloatTensor)
