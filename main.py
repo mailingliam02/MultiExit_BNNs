@@ -23,7 +23,6 @@ ex.add_config(hyperparameters)
 def main(_config):
     # Load the dataset
     print("Loading Datasets")
-    transforms = datasets.get_transforms()
     # Convert hyperparameters so they load into this directly (and the above)!
     # Need to return validation stuff as well!
     train_loader, val_loader, test_loader = datasets.get_dataloader(hyperparameters["loaders"])

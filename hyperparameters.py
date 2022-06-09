@@ -112,6 +112,6 @@ def get_test_hyperparameters(n_exits, model_type):
         cf_loss = dict(  # evaluation metric
             call = 'MultiExitAccuracy',
             n_exits = n_exits,
-            acc_tops = (5),
+            acc_tops = (1,5),
         )
     return cf_loss
