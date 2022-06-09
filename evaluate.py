@@ -14,9 +14,10 @@ def evaluate(loss_fn, test_iter, model, gpu):
 
 def log(loss_metrics,val_metrics):
     float_types = (float, torch.FloatTensor, torch.cuda.FloatTensor)
-    value_strings = (f'{a:>8.4f}' if isinstance(a, float_types) else f'{a}'
+    value_generator = (f'{a:>8.4f}' if isinstance(a, float_types) else f'{a}'
                for a in val_metrics)
+    value_string = '\t'.join(value_generator)
     with open("log.txt", "w") as file1:
         # Writing data to a file
         file1.write(loss_metrics)
-        file1.write(value_strings)
+        file1.write(value_string)
