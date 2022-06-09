@@ -13,7 +13,6 @@ sacred.SETTINGS['HOST_INFO']['INCLUDE_GPU_INFO'] = False
 ex = sacred.Experiment()
 ex.observers.append(sacred.observers.FileStorageObserver.create(str(RUNS_DB_DIR)))
 
-
 # Specify Hyperparameters (maybe add command line compatibility?)
 hyperparameters = get_hyperparameters()
 # Load any Utilities (like a timer, logging...)
@@ -21,6 +20,8 @@ ex.add_config(hyperparameters)
 
 @ex.main
 def main(_config):
+    # Get experiment ID for logging purposes
+    experiment_id = ex.current_run._id
     # Load the dataset
     print("Loading Datasets")
     # Convert hyperparameters so they load into this directly (and the above)!
@@ -46,9 +47,9 @@ def main(_config):
     # Evaluate the Network on Test
     test_loss_fn = to_train.get_loss_function(hyperparameters["test_loss"])
     # loss_fn, test_iter, model, gpu
-    results = evaluate(test_loss_fn, test_loader,model,hyperparameters["gpu"])
+    results = evaluate(test_loss_fn, test_loader,model,hyperparameters["gpu"], experiment_id)
     # Save Model
-
+    
     return results
 
 if __name__ == "__main__":
