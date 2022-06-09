@@ -1,3 +1,4 @@
+from xmlrpc.client import FastUnmarshaller
 import torch
 from torch import nn
 from typing import List
@@ -19,7 +20,7 @@ class MsdNet(_TraceInForward):
                  nlayers_between_exits, nplanes_mulv:List[int],
                  nplanes_addh:int, nplanes_init=32, prune=None,
                  plane_reduction=0.0, exit_width=None, btneck_widths=(),
-                 execute_exits=None):
+                 execute_exits=None, dropout = None, dropout_p = 0.5, dropout_exit = False):
         """Creates the Multi-Scale DenseNet
         Attributes
         ----------
@@ -44,16 +45,21 @@ class MsdNet(_TraceInForward):
             The starting number of channels as the first layer multiplier of
             the nplanes_mulv values
         prune : str
-            family name of the person
+            x
         plane_reduction : int
-            age of the person
+            x
         exit_width : int
             x
         btneck_widths : int
-            age of the person
+            x
         execute_exits : int
             x    
-
+        dropout : str
+            all, scale, layer, block, None
+        dropout_p : float
+            x
+        dropout_exit : bool
+            Bool to include dropout on classifier
         """
         # Init for trace method
         super().__init__()
@@ -65,6 +71,10 @@ class MsdNet(_TraceInForward):
         self.out_dim = out_dim
         # Define size of result during Conv before FC in exits
         self.exit_width = exit_width
+        # Defines dropout probability
+        self.dropout = dropout
+        self.dropout_exit = dropout_exit
+        self.p = dropout_p
         # Specifies which exits to exit at
         self._execute_exits = (execute_exits if execute_exits is not None
                                else range(n_exits))
@@ -97,13 +107,19 @@ class MsdNet(_TraceInForward):
         block = []
         # Adds block if input size is specified
         if layer0_size:
-            block = [MsdLayer0(nplanes_tab[:,0], layer0_size)]
+            block = [MsdLayer0(nplanes_tab[:,0], layer0_size, dropout = self.dropout, dropout_p = self.p)]
         # Adds additional layers and if scale is removed, add transition layer
         for i in range(1, nplanes_tab.shape[1]):
             # Adds all scales in a column simultaneously
-            block += [MsdLayer(nplanes_tab[:,i-1:i+1], btneck_widths)
+            block += [MsdLayer(nplanes_tab[:,i-1:i+1], btneck_widths, dropout = self.dropout, dropout_p = self.p)
                       if nplanes_tab[-1,i-1] < nplanes_tab[-1,i] else
                       MsdTransition(nplanes_tab[:,i-1:i+1])]
+            if self.dropout == "layer":
+                # Gets added for each layer in block
+                block += nn.Dropout(p = self.p)
+        if self.dropout == "block":
+            # Gets added only once at end of block
+            block += nn.Dropout(p = self.p)
         return nn.Sequential(*block)
 
     def Exit(self, n_channels, out_dim, inner_channels=None):
@@ -111,17 +127,31 @@ class MsdNet(_TraceInForward):
         # Inner channels are the depth of the intermediary results
         # of the two ConvBnRelu layers
         inner_channels = inner_channels or n_channels
-        return nn.Sequential(
-            # Not explained why this structure of exit...
-            ConvBnRelu2d(n_channels, inner_channels, kernel_size=3,
-                         stride=2, padding=1),
-            ConvBnRelu2d(inner_channels, inner_channels, kernel_size=3,
-                         stride=2, padding=1),
-            nn.AvgPool2d(kernel_size=2),
-            # Flattens output
-            View(-1, inner_channels),
-            nn.Linear(inner_channels, out_dim),
-        )
+        if self.dropout_exit:
+            return nn.Sequential(
+                # Not explained why this structure of exit...
+                ConvBnRelu2d(n_channels, inner_channels, kernel_size=3,
+                            stride=2, padding=1),
+                ConvBnRelu2d(inner_channels, inner_channels, kernel_size=3,
+                            stride=2, padding=1),
+                nn.AvgPool2d(kernel_size=2),
+                # Flattens output
+                View(-1, inner_channels),
+                nn.Dropout(p = self.p),
+                nn.Linear(inner_channels, out_dim),
+            )
+        else:
+            return nn.Sequential(
+                # Not explained why this structure of exit...
+                ConvBnRelu2d(n_channels, inner_channels, kernel_size=3,
+                            stride=2, padding=1),
+                ConvBnRelu2d(inner_channels, inner_channels, kernel_size=3,
+                            stride=2, padding=1),
+                nn.AvgPool2d(kernel_size=2),
+                # Flattens output
+                View(-1, inner_channels),
+                nn.Linear(inner_channels, out_dim),
+            )
 
     def block_sep(self, block_nlayers, n_scales, prune, plane_reduction):
         """Identifies the indices of layers for each block"""
