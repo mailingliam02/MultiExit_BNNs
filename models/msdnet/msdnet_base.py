@@ -1,11 +1,11 @@
 from xmlrpc.client import FastUnmarshaller
-import torch
 from torch import nn
 from typing import List
 import numpy as np
 import math
 from models.msdnet.msdnet_utils import ConvBnRelu2d, View, MsdTransition, MsdJoinConv, TransientDict
 from models.msdnet.msdnet_layers import MsdLayer, MsdLayer0
+from models.mcdropout import get_dropout
 
 class _TraceInForward(nn.Module):
     def forward(self, x, keep_layers=()):
