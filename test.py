@@ -19,9 +19,15 @@ def test_msdnet():
     # test_architecture(model,hyperparameters["network"])
     # Identical (Need to set weights of Linear layer)
     #test_exit_outputs(model, test_data, hyperparameters["network"])
-    # 
-    test_loss(model, test_data, loss_fn)
+    # Seems to be working, didn't actually work out by hand
+    #test_loss(model, test_data, loss_fn)
+    x = test_data[0]
+    y = test_data[1]
+    actual = model(x)
+    print("Actual")
+    print(actual)
     return
+
 
 
 def test_architecture(model, network_hyperparameters):
