@@ -116,10 +116,10 @@ class MsdNet(_TraceInForward):
                       MsdTransition(nplanes_tab[:,i-1:i+1])]
             if self.dropout == "layer":
                 # Gets added for each layer in block
-                block += nn.Dropout(p = self.p)
+                block += get_dropout(p = self.p)
         if self.dropout == "block":
             # Gets added only once at end of block
-            block += nn.Dropout(p = self.p)
+            block += get_dropout(p = self.p)
         return nn.Sequential(*block)
 
     def Exit(self, n_channels, out_dim, inner_channels=None):
@@ -137,7 +137,7 @@ class MsdNet(_TraceInForward):
                 nn.AvgPool2d(kernel_size=2),
                 # Flattens output
                 View(-1, inner_channels),
-                nn.Dropout(p = self.p),
+                get_dropout(p = self.p),
                 nn.Linear(inner_channels, out_dim),
             )
         else:

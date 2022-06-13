@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from models.msdnet.msdnet_utils import ConvBnRelu2d, MsdJoinConv
+from models.mcdropout import get_dropout
 
 class MsdLayer0(nn.Module):
     """Creates the first layer of MsdNet
@@ -37,7 +38,7 @@ class MsdLayer0(nn.Module):
 
         # Add dropout after every Convolution
         if dropout == "scale":
-            dropout_layer = nn.Dropout(p = dropout_p)
+            dropout_layer = get_dropout(p = dropout_p)
             module = nn.Sequential(module, dropout_layer)
 
         self.mods += [module]
@@ -46,7 +47,7 @@ class MsdLayer0(nn.Module):
             conv = ConvBnRelu2d(nplanes_list[i-1], nplanes_list[i],
                                        kernel_size=3, stride=2, padding=1)
             if dropout == "scale":
-                dropout_layer = nn.Dropout(p = dropout_p)
+                dropout_layer = get_dropout(p = dropout_p)
                 self.mods += [nn.Sequential(conv, dropout_layer)]
             else:
                 self.mods += [conv]
@@ -91,7 +92,7 @@ class MsdLayer(nn.Module):
                                         btneck_widths[i], btneck_width_prev)
                 if dropout == "scale":
                     # Adds dropout for each scale in layer
-                    dropout_layer = nn.Dropout(p = dropout_p)
+                    dropout_layer = get_dropout(p = dropout_p)
                     module = [nn.Sequential(conv, dropout_layer)]
                 else:
                     module = [conv]
