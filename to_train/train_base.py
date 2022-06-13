@@ -46,12 +46,13 @@ def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gp
     train_loader, val_loader = data_loaders
     model = model.to(device=device)  # move the model parameters to CPU/GPU
     for e in range(epochs):
+        scheduler.step()
         last_loss = train_single_epoch(model,train_loader,optimizer,loss_fn, device)
         val_metrics = validate_model(loss_fn, model, val_loader, gpu)
         # had issues with trn_metrics, removed
         print(f"epoch: {e}, loss: {tab_str(last_loss)}")
         print("validation scores:")
         print(tab_str('', 0.0, *val_metrics))
-        scheduler.step()
+        
     return model
 

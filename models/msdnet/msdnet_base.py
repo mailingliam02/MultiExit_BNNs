@@ -19,7 +19,7 @@ class MsdNet(_TraceInForward):
                  nlayers_between_exits, nplanes_mulv:List[int],
                  nplanes_addh:int, nplanes_init=32, prune=None,
                  plane_reduction=0.0, exit_width=None, btneck_widths=(),
-                 execute_exits=None):
+                 execute_exits=None, test_mode = False):
         """Creates the Multi-Scale DenseNet
         Attributes
         ----------
@@ -59,6 +59,8 @@ class MsdNet(_TraceInForward):
         super().__init__()
         # Why is this assertion necessary?
         assert nlayers_to_exit >= nlayers_between_exits
+        # Test mode
+        self.test_mode = test_mode
         # Define number of exit classifiers
         self.n_exits = n_exits
         # Define size of output of each classifier
@@ -72,6 +74,7 @@ class MsdNet(_TraceInForward):
         block_nlayers = [nlayers_to_exit] + [nlayers_between_exits]*(n_exits-1)
         # Number of layers
         n_layers = 1 + sum(block_nlayers)
+        print("nlayers", n_layers)
         # Extracts an array of each scale and layer's channels
         nplanes_tab = self.nplanes_tab(n_scales, n_layers, nplanes_init,
                                        nplanes_mulv, nplanes_addh, prune,
@@ -190,11 +193,17 @@ class MsdNet(_TraceInForward):
             return [0] * n_layers
         
     def init_weights(self):
+        if self.test_mode:
+            g_cpu = torch.Generator()
+            g_cpu.manual_seed(42)
         for m in self.modules():
             # Should check the inits are standard!
             if isinstance(m, nn.Conv2d):
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0.0, math.sqrt(2/n))
+                if self.test_mode:
+                    m.weight.data.normal_(0.0, math.sqrt(2/n), generator = g_cpu)
+                else:
+                    m.weight.data.normal_(0.0, math.sqrt(2/n))
                 m.bias.data.fill_(0.0)
             elif isinstance(m, nn.BatchNorm2d):
                 m.weight.data.fill_(1.0)
