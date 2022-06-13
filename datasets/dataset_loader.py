@@ -2,15 +2,18 @@ import torch
 import torchvision
 import os
 import torch
+import random
 import numpy as np
 from torchvision import datasets
 from torchvision import transforms
 from torch.utils.data.sampler import SubsetRandomSampler
 
-def get_dataloader(hyperparameters):
+def get_dataloader(hyperparameters, random_seed = None):
+    if random_seed is None:
+        random_seed = random.randint(1,1000)
     dataset_loader = DatasetLoader(dataset_name = hyperparameters["dataset_name"], 
         batch_size = hyperparameters["batch_size"], augment = hyperparameters["augment"], 
-        random_seed = 42, valid_split = hyperparameters["val_split"])
+        random_seed = random_seed, valid_split = hyperparameters["val_split"])
     train_loader, val_loader, test_loader = dataset_loader.get_dataloaders()
     return train_loader, val_loader, test_loader 
 

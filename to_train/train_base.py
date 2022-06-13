@@ -1,5 +1,5 @@
 import torch
-from to_train.train_utils import get_device, validate_model, tab_str
+from to_train.train_utils import get_device, validate_model, tab_str, predict
 
 # From https://pytorch.org/tutorials/beginner/introyt/trainingyt.html#the-training-loop
 def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = torch.float32):
@@ -25,9 +25,8 @@ def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = t
         # Gather data and report
         running_loss += loss.item()
         
-        # For testing purposes 1000 --> 10
-        if i % 1000 == 999:
-            last_loss = running_loss / 1000 # loss per batch
+        if i % 200 == 199:
+            last_loss = running_loss / 200 # loss per batch
             print('  batch {} loss: {}'.format(i + 1, last_loss))
             running_loss = 0.
     return last_loss
@@ -50,7 +49,8 @@ def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gp
         last_loss = train_single_epoch(model,train_loader,optimizer,loss_fn, device)
         val_metrics = validate_model(loss_fn, model, val_loader, gpu)
         # had issues with trn_metrics, removed
-        print(tab_str(e, last_loss))
+        print(f"epoch: {e}, loss: {tab_str(last_loss)}")
+        print("validation scores:")
         print(tab_str('', 0.0, *val_metrics))
         scheduler.step()
     return model

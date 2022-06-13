@@ -8,8 +8,9 @@ def predict(model, X, gpu):
     device = get_device(gpu)
     X = X.to(device)
     model.to(device)
-    scores = model(x)
-    _, pred = scores.max(1)
+    scores = model(X)
+    # Get last score
+    _, pred = scores[-1].max(1)
     return pred.cpu().numpy()
 
 def get_optimizer(model, hyperparameters):
