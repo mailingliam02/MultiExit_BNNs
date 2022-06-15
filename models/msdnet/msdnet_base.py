@@ -3,6 +3,7 @@ from torch import nn
 from typing import List
 import numpy as np
 import math
+import torch
 from models.msdnet.msdnet_utils import ConvBnRelu2d, View, MsdTransition, MsdJoinConv, TransientDict
 from models.msdnet.msdnet_layers import MsdLayer, MsdLayer0
 from models.mcdropout import get_dropout
@@ -20,7 +21,8 @@ class MsdNet(_TraceInForward):
                  nlayers_between_exits, nplanes_mulv:List[int],
                  nplanes_addh:int, nplanes_init=32, prune=None,
                  plane_reduction=0.0, exit_width=None, btneck_widths=(),
-                 execute_exits=None, dropout = None, dropout_p = 0.5, dropout_exit = False):
+                 execute_exits=None, test_mode = False, dropout = None, 
+                 dropout_p = 0.5, dropout_exit = False):
         """Creates the Multi-Scale DenseNet
         Attributes
         ----------
@@ -55,7 +57,7 @@ class MsdNet(_TraceInForward):
         execute_exits : int
             x    
         dropout : str
-            all, scale, layer, block, None
+            scale, layer, block, None
         dropout_p : float
             x
         dropout_exit : bool
@@ -65,6 +67,8 @@ class MsdNet(_TraceInForward):
         super().__init__()
         # Why is this assertion necessary?
         assert nlayers_to_exit >= nlayers_between_exits
+        # Test mode
+        self.test_mode = test_mode
         # Define number of exit classifiers
         self.n_exits = n_exits
         # Define size of output of each classifier
@@ -116,10 +120,10 @@ class MsdNet(_TraceInForward):
                       MsdTransition(nplanes_tab[:,i-1:i+1])]
             if self.dropout == "layer":
                 # Gets added for each layer in block
-                block += get_dropout(p = self.p)
+                block += [get_dropout(p = self.p)]
         if self.dropout == "block":
             # Gets added only once at end of block
-            block += get_dropout(p = self.p)
+            block += [get_dropout(p = self.p)]
         return nn.Sequential(*block)
 
     def Exit(self, n_channels, out_dim, inner_channels=None):
@@ -220,16 +224,24 @@ class MsdNet(_TraceInForward):
             return [0] * n_layers
         
     def init_weights(self):
+        if self.test_mode:
+            g_cpu = torch.Generator()
+            g_cpu.manual_seed(42)
         for m in self.modules():
             # Should check the inits are standard!
             if isinstance(m, nn.Conv2d):
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0.0, math.sqrt(2/n))
+                if self.test_mode:
+                    m.weight.data.normal_(0.0, math.sqrt(2/n), generator = g_cpu)
+                else:
+                    m.weight.data.normal_(0.0, math.sqrt(2/n))
                 m.bias.data.fill_(0.0)
             elif isinstance(m, nn.BatchNorm2d):
                 m.weight.data.fill_(1.0)
                 m.bias.data.fill_(0.0)
             elif isinstance(m, nn.Linear):
+                if self.test_mode:
+                    m.weight.data.normal_(0.0, math.sqrt(2/n), generator = g_cpu)
                 m.bias.data.fill_(0.0)
 
     def forward(self, x, keep_layers=()):

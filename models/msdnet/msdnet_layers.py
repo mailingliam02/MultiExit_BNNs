@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from models.msdnet.msdnet_utils import ConvBnRelu2d, MsdJoinConv
+from models.msdnet.msdnet_utils import ConvBnRelu2d, MsdJoinConv, MultiInputSequential
 from models.mcdropout import get_dropout
 
 class MsdLayer0(nn.Module):
@@ -93,17 +93,18 @@ class MsdLayer(nn.Module):
                 if dropout == "scale":
                     # Adds dropout for each scale in layer
                     dropout_layer = get_dropout(p = dropout_p)
-                    module = [nn.Sequential(conv, dropout_layer)]
+                    module = [MultiInputSequential(conv, dropout_layer)]
                 else:
                     module = [conv]
             else:
-                module = None
+                module = [None]
             self.mods += module
-            
+
     def forward(self, x):
         out = []
         for i, m in enumerate(self.mods):
             # Does not downsample for the first scale
             x_down = None if i == 0 else x[i-1]
+            # Problem is that Sequential can't handle multiple inputs!!
             out += [m(x[i], x[i], x_down) if m else None]
         return out

@@ -15,8 +15,20 @@ class MCDropout(nn.Dropout):
         self.inplace_bool = inplace
     
     def forward(self,x):
-        return nn.functional.dropout(x, p = self.dropout_p, training = True,
-            inplace = self.inplace_bool)
+        print(type(x))
+        # If Dropout is applied in block, will be given outputs for each of the scales in a list!
+        if type(x) == list:
+            output = []
+            for input in x:
+                if input is not None:
+                    output.append(nn.functional.dropout(input, p = self.dropout_p, training = True,
+                        inplace = self.inplace_bool))
+                else:
+                    output.append(None)
+        else:
+            output = nn.functional.dropout(x, p = self.dropout_p, training = True,
+                inplace = self.inplace_bool)
+        return output
         
 def test_dropout():
     dropout = get_dropout(p = 0.2)
