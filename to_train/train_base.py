@@ -2,7 +2,7 @@ import torch
 from to_train.train_utils import get_device, validate_model, tab_str, predict
 
 # From https://pytorch.org/tutorials/beginner/introyt/trainingyt.html#the-training-loop
-def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = torch.float32):
+def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = torch.float32, max_norm = 10):
     running_loss = 0
     last_loss = 0
     # Here, we use enumerate(training_loader) instead of
@@ -18,7 +18,8 @@ def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = t
         # Compute the loss and its gradients
         loss = loss_fn(model,x, y)
         loss.backward()
-
+        # Needed for training (Need to look into this more!)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
         # Adjust learning weights
         optimizer.step()
 
