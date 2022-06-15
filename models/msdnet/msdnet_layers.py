@@ -1,6 +1,7 @@
 import torch
 from torch import nn
-from models.msdnet.msdnet_utils import ConvBnRelu2d, MsdJoinConv
+from models.msdnet.msdnet_utils import ConvBnRelu2d, MsdJoinConv, MultiInputSequential
+from models.mcdropout import get_dropout
 
 class MsdLayer0(nn.Module):
     """Creates the first layer of MsdNet
@@ -18,27 +19,39 @@ class MsdLayer0(nn.Module):
     info(additional=""):
         Prints the person's name and age.
     """
-    def __init__(self, nplanes_list, in_shape):
+    def __init__(self, nplanes_list, in_shape, dropout = None, dropout_p = 0.5):
         super().__init__()
         in_channels = 3
         self.mods = nn.ModuleList()
         
         # For Cifar
         if in_shape == 32:
-            self.mods += [ConvBnRelu2d(in_channels, nplanes_list[0],
-                                       kernel_size=3, padding=1)]
+            module = ConvBnRelu2d(in_channels, nplanes_list[0],
+                                       kernel_size=3, padding=1)
         
         # For ImageNet
         elif in_shape == 224:
             conv = ConvBnRelu2d(in_channels, nplanes_list[0],
                                 kernel_size=7, stride=2, padding=3)
             pool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-            self.mods += [nn.Sequential(conv, pool)]
-        
+            module = nn.Sequential(conv, pool)
+
+        # Add dropout after every Convolution
+        if dropout == "scale":
+            dropout_layer = get_dropout(p = dropout_p)
+            module = nn.Sequential(module, dropout_layer)
+
+        self.mods += [module]
         # Strided Convolutions connecting scales within a layer
         for i in range(1, len(nplanes_list)):
-            self.mods += [ConvBnRelu2d(nplanes_list[i-1], nplanes_list[i],
-                                       kernel_size=3, stride=2, padding=1)]
+            conv = ConvBnRelu2d(nplanes_list[i-1], nplanes_list[i],
+                                       kernel_size=3, stride=2, padding=1)
+            if dropout == "scale":
+                dropout_layer = get_dropout(p = dropout_p)
+                self.mods += [nn.Sequential(conv, dropout_layer)]
+            else:
+                self.mods += [conv]
+
     def forward(self, x):
         out = [x]
         for i in range(len(self.mods)):
@@ -49,7 +62,7 @@ class MsdLayer0(nn.Module):
 
     
 class MsdLayer(nn.Module):
-    def __init__(self, nplanes_tab, btneck_widths):
+    def __init__(self, nplanes_tab, btneck_widths, dropout = None, dropout_p = 0.5):
         """Creates the Multi-Scale DenseNet
         Attributes
         ----------
@@ -74,14 +87,24 @@ class MsdLayer(nn.Module):
             n_in_prev = nplanes_tab[i-1, 0] if i else 0
             # Gets bottle neck for the strided conv
             btneck_width_prev = btneck_widths[i-1] if i else None
-            self.mods += [MsdJoinConv(n_in, n_in_prev, n_out - n_in,
-                                      btneck_widths[i], btneck_width_prev)
-                          if n_out else None]
-            
+            if n_out:
+                conv = MsdJoinConv(n_in, n_in_prev, n_out - n_in,
+                                        btneck_widths[i], btneck_width_prev)
+                if dropout == "scale":
+                    # Adds dropout for each scale in layer
+                    dropout_layer = get_dropout(p = dropout_p)
+                    module = [MultiInputSequential(conv, dropout_layer)]
+                else:
+                    module = [conv]
+            else:
+                module = [None]
+            self.mods += module
+
     def forward(self, x):
         out = []
         for i, m in enumerate(self.mods):
             # Does not downsample for the first scale
             x_down = None if i == 0 else x[i-1]
+            # Problem is that Sequential can't handle multiple inputs!!
             out += [m(x[i], x[i], x_down) if m else None]
         return out

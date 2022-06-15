@@ -45,6 +45,7 @@ def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gp
     device = get_device(gpu)
     train_loader, val_loader = data_loaders
     model = model.to(device=device)  # move the model parameters to CPU/GPU
+    # Sets to train mode
     model.train()
     for e in range(epochs):
         last_loss = train_single_epoch(model,train_loader,optimizer,loss_fn, device)
