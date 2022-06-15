@@ -89,6 +89,8 @@ class TransientDict:
     def keys(self):
         return self._dic.keys()
 
+
+# From https://github.com/pytorch/pytorch/issues/19808#
 class MultiInputSequential(nn.Sequential):
     def forward(self, *inputs):
         for module in self._modules.values():
