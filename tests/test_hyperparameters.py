@@ -33,18 +33,21 @@ def get_network_hyperparameters(model_type):
         call = 'MsdNet',
         in_shape = 32,
         out_dim = 100,
-        n_scales = 2,
-        n_exits = 1,
-        nlayers_to_exit = 1,
-        nlayers_between_exits = 1,
+        n_scales = 3,
+        n_exits = 3,
+        nlayers_to_exit = 2,
+        nlayers_between_exits = 2,
         nplanes_mulv = [2, 4, 8],
         nplanes_addh = 1,
         nplanes_init = 1,
         prune = "min",
         plane_reduction = 0, # Try this with 0 to avoid the halving
-        exit_width = 32, # same as 128 dim 3x3 filters in exit?
+        exit_width = 128, # same as 128 dim 3x3 filters in exit?
         test_mode = True,
-        )
+        #dropout = "block",
+        #dropout_exit = True,
+        #dropout_p = 0.8,
+        ) 
     return hyperparams
 
 def get_loss_hyperparameters(num_exits, model_type,loss_type = "distillation_annealing"):
@@ -99,7 +102,7 @@ def get_opt_sched_hyperparameters():
 
 def get_loader_hyperparameters():
     hyperparameters = dict(dataset_name = "cifar100",
-        batch_size = (4,250,250), #(train, val, test)
+        batch_size = (1,1,250), #(train, val, test)
         augment = True,
         val_split = 0.1,
         )

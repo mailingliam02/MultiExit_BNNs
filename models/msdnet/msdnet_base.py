@@ -209,6 +209,8 @@ class MsdNet(_TraceInForward):
                 m.weight.data.fill_(1.0)
                 m.bias.data.fill_(0.0)
             elif isinstance(m, nn.Linear):
+                if self.test_mode:
+                    m.weight.data.normal_(0.0, math.sqrt(2/n), generator = g_cpu)
                 m.bias.data.fill_(0.0)
 
     def forward(self, x, keep_layers=()):
