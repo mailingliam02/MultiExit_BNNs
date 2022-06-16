@@ -33,7 +33,7 @@ def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = t
     return last_loss
 
 # From https://gitlab.doc.ic.ac.uk/lab2122_spring/DL_CW_1_lrc121/-/blob/master/dl_cw_1.ipynb
-def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gpu = -1):
+def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_id, epochs=1, gpu = -1):
     """
     Train a model.
     
@@ -48,10 +48,14 @@ def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gp
     model = model.to(device=device)  # move the model parameters to CPU/GPU
     # Sets to train mode
     model.train()
+    best_accuracy = 0
     for e in range(epochs):
         last_loss = train_single_epoch(model,train_loader,optimizer,loss_fn, device)
         val_metrics = validate_model(loss_fn, model, val_loader, gpu)
-        # had issues with trn_metrics, removed
+        # had issues with trn_metrics, remove
+        if val_metrics[1] > best_accuracy:
+            best_accuracy = val_metrics[1]
+            torch.save(model, "./snapshots/best_val_model_"+str(experiment_id))
         print(f"epoch: {e}, loss: {tab_str(last_loss)}")
         print("validation scores:")
         print(tab_str('', 0.0, *val_metrics))

@@ -16,7 +16,7 @@ def evaluate(loss_fn, test_iter, model, gpu, experiment_id, mc_dropout_passes):
     averaged_test_metrics = list(np.average(test_metrics, axis = 0))
     print(tab_str(*averaged_test_metrics))
     # Log
-    #log(loss_metrics,averaged_test_metrics, experiment_id)
+    log(loss_metrics,averaged_test_metrics, experiment_id)
     return averaged_test_metrics
 
 def log(loss_metrics,val_metrics, experiment_id):

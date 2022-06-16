@@ -50,6 +50,7 @@ def get_network_hyperparameters(model_type):
             dropout = "block",
             dropout_exit = True,
             dropout_p = 0.4,
+            load_model = None,
             )
     if hyperparams["dropout"] is not None or hyperparams["dropout_exit"]:
         mc_dropout_passes = 10

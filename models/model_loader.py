@@ -1,3 +1,4 @@
+import torch
 from models.msdnet import MsdNet
 
 def dict_drop(dic, *keys):
@@ -10,8 +11,10 @@ def dict_drop(dic, *keys):
 
 
 def get_network(network_hyperparams):
-    if network_hyperparams["call"] == "MsdNet":
-        model = MsdNet(**dict_drop(network_hyperparams, "call"))
+    if network_hyperparams["load_model"] is not None:
+        model = torch.load(network_hyperparams["load_model"])
+    elif network_hyperparams["call"] == "MsdNet":
+        model = MsdNet(**dict_drop(network_hyperparams, "call", "load_model"))
     else:
         raise AttributeError
     return model
