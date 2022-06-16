@@ -47,7 +47,7 @@ def main(_config):
     # Evaluate the Network on Test
     test_loss_fn = to_train.get_loss_function(hyperparameters["test_loss"])
     # loss_fn, test_iter, model, gpu
-    results = evaluate(test_loss_fn, test_loader,model,hyperparameters["gpu"], experiment_id)
+    results = evaluate(test_loss_fn, test_loader,model,hyperparameters["gpu"], experiment_id, hyperparameters["mc_dropout_passes"])
     # Save Model
     
     return results

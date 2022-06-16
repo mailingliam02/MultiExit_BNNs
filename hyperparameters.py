@@ -5,9 +5,10 @@ def get_hyperparameters():
     model_type = "msdnet"
     n_epochs = 1
     gpu = 0
+    
 
     # Network
-    network_hyperparameters = get_network_hyperparameters(model_type)
+    network_hyperparameters, mc_dropout_passes = get_network_hyperparameters(model_type)
     # Losses
     loss_hyperparameters = get_loss_hyperparameters(network_hyperparameters["n_exits"], model_type)
     test_loss_hyperparameters = get_test_hyperparameters(network_hyperparameters["n_exits"], model_type)
@@ -25,6 +26,7 @@ def get_hyperparameters():
         n_epochs = n_epochs,
         test_loss = test_loss_hyperparameters,
         gpu = gpu,
+        mc_dropout_passes = mc_dropout_passes,
         loaders = loader_hyperparameters,
         )
     return hyperparameters
@@ -45,8 +47,15 @@ def get_network_hyperparameters(model_type):
             prune = 'min',
             plane_reduction = 0.5, # Try this with 0 to avoid the halving
             exit_width = 128, # same as 128 dim 3x3 filters in exit?
+            dropout = "block",
+            dropout_exit = True,
+            dropout_p = 0.4,
             )
-    return hyperparams
+    if hyperparams["dropout"] is not None or hyperparams["dropout_exit"]:
+        mc_dropout_passes = 10
+    else:
+        mc_dropout_passes = 1
+    return hyperparams, mc_dropout_passes
 
 def get_loss_hyperparameters(num_exits, model_type,loss_type = "distillation_annealing"):
     if model_type == "msdnet":
