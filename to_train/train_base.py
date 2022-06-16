@@ -1,10 +1,11 @@
 import torch
-from to_train.train_utils import get_device, validate_model, tab_str, predict
+from to_train.train_utils import get_device, validate_model, tab_str, predict, plot_loss
 
 # From https://pytorch.org/tutorials/beginner/introyt/trainingyt.html#the-training-loop
 def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = torch.float32, max_norm = 10):
     running_loss = 0
     last_loss = 0
+    all_losses = []
     # Here, we use enumerate(training_loader) instead of
     # iter(training_loader) so that we can track the batch
     # index and do some intra-epoch reporting
@@ -25,15 +26,16 @@ def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = t
 
         # Gather data and report
         running_loss += loss.item()
+        all_losses.append(loss.item())
         
         if i % 200 == 199:
             last_loss = running_loss / 200 # loss per batch
             print('  batch {} loss: {}'.format(i + 1, last_loss))
             running_loss = 0.
-    return last_loss
+    return last_loss, all_losses
 
 # From https://gitlab.doc.ic.ac.uk/lab2122_spring/DL_CW_1_lrc121/-/blob/master/dl_cw_1.ipynb
-def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_id, epochs=1, gpu = -1):
+def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_id, patience = 10, epochs=1, gpu = -1):
     """
     Train a model.
     
@@ -49,17 +51,25 @@ def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_i
     # Sets to train mode
     model.train()
     best_accuracy = 0
+    counter = 0
+    all_train_losses = []
+    all_val_losses = []
     for e in range(epochs):
-        last_loss = train_single_epoch(model,train_loader,optimizer,loss_fn, device)
-        val_metrics = validate_model(loss_fn, model, val_loader, gpu)
+        last_loss, train_losses = train_single_epoch(model,train_loader,optimizer,loss_fn, device)
+        val_loss = validate_model(loss_fn, model, val_loader, gpu)
+        all_train_losses += train_losses
+        all_val_losses.append(val_loss)
+        print(f"epoch: {e}, loss: {tab_str(last_loss)}, val_loss: {tab_str(val_loss)}")
         # had issues with trn_metrics, remove
-        if val_metrics[1] > best_accuracy:
-            best_accuracy = val_metrics[1]
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            counter = 0
             torch.save(model, "./snapshots/best_val_model_"+str(experiment_id))
-        print(f"epoch: {e}, loss: {tab_str(last_loss)}")
-        print("validation scores:")
-        print(tab_str('', 0.0, *val_metrics))
+        else:
+            counter += 1
+            if counter > patience:
+                break
         scheduler.step()
-        
+    plot_loss(all_train_losses,all_val_losses, experiment_id)
     return model
 

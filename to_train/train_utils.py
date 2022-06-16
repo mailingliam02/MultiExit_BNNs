@@ -1,4 +1,6 @@
 import torch
+import matplotlib.pyplot as plt
+import numpy as np
 from to_train.loss import dict_drop
 
 def get_device(gpu):
@@ -25,15 +27,33 @@ def get_scheduler(opt, hyperparameters):
     return scheduler
 
 # Needs to be rewritten
-def validate_model(loss_f, net, val_iter, gpu):
+def validate_model_acc(loss_f, net, val_iter, gpu):
     metrics = []
     for val_tuple in val_iter:
         val_tuple = [t.to(get_device(gpu)) for t in val_tuple]
         metrics += [loss_f.metrics(net, *val_tuple)]
     return [sum(metric) / len(metric) for metric in zip(*metrics)]
 
+def validate_model(loss_fn, net, val_iter, gpu):
+    device = get_device(gpu)
+    loss = 0
+    for (x,y) in val_iter:
+        x = x.to(device)
+        y = y.to(device)
+        loss += loss_fn(net,x,y)
+    loss /= len(val_iter)
+    return loss
+
+
 def tab_str(*args):
     float_types = (float, torch.FloatTensor, torch.cuda.FloatTensor)
     strings = (f'{a:>8.4f}' if isinstance(a, float_types) else f'{a}'
                for a in args)
     return '\t'.join(strings)
+
+def plot_loss(train_losses, val_losses, experiment_id):
+    x_val = range(len(val_losses))
+    x = np.linspace(0,len(val_losses), num = len(train_losses))
+    plt.scatter(x_val, val_losses)
+    plt.scatter(x,train_losses)
+    plt.savefig("./snapshots/figures/loss_curve_"+str(experiment_id)+".png")

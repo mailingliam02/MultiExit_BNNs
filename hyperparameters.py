@@ -5,6 +5,7 @@ def get_hyperparameters():
     model_type = "msdnet"
     n_epochs = 1
     gpu = 0
+    patience = 10
     
 
     # Network
@@ -26,6 +27,7 @@ def get_hyperparameters():
         n_epochs = n_epochs,
         test_loss = test_loss_hyperparameters,
         gpu = gpu,
+        patience = patience,
         mc_dropout_passes = mc_dropout_passes,
         loaders = loader_hyperparameters,
         )
@@ -110,7 +112,8 @@ def get_opt_sched_hyperparameters():
 
 def get_loader_hyperparameters():
     hyperparameters = dict(dataset_name = "cifar100",
-        batch_size = (64,250,250), #(train, val, test)
+        batch_size = (64,64,250), #(train, val, test) 
+        # train and val batch sizes should be the same for plotting purposes
         augment = True,
         val_split = 0.1,
         )
