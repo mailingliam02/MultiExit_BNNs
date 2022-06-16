@@ -10,10 +10,10 @@ def get_test_data(hyperparams):
                 normalize,
             ])
     train_set = datasets.CIFAR100(
-                root="data/cifar100", train=True,
+                root="data/cifar100", train=False,
                 download=False, transform=train_transforms,
             )
     train_loader = torch.utils.data.DataLoader(train_set,batch_size = 1,
                 num_workers=1, pin_memory=True)
     single_item_v2 = next(iter(train_loader))
-    return single_item_v2
+    return single_item_v2, train_loader

@@ -44,9 +44,9 @@ def get_network_hyperparameters(model_type):
         plane_reduction = 0, # Try this with 0 to avoid the halving
         exit_width = 128, # same as 128 dim 3x3 filters in exit?
         test_mode = True,
-        #dropout = "block",
-        #dropout_exit = True,
-        #dropout_p = 0.8,
+        dropout = "block",
+        dropout_exit = True,
+        dropout_p = 0.4,
         ) 
     return hyperparams
 

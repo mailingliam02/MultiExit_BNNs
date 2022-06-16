@@ -9,10 +9,11 @@ from models.msdnet.msdnet_layers import MsdLayer, MsdLayer0
 from models.msdnet.msdnet_utils import MsdTransition, ConvBnRelu2d, View
 from tests.test_hyperparameters import get_msd_test_hyperparameters
 from tests.test_data import get_test_data
+from evaluate import evaluate
 
 def test_msdnet():
     hyperparameters = get_msd_test_hyperparameters()
-    test_data = get_test_data(hyperparameters)
+    test_data, loader = get_test_data(hyperparameters)
     model = models.get_network(hyperparameters["network"])
     loss_fn = to_train.get_loss_function(hyperparameters["loss"])
     # Not correct, but shouldn't be causing issues with training!
@@ -23,9 +24,11 @@ def test_msdnet():
     #test_loss(model, test_data, loss_fn)
     x = test_data[0]
     y = test_data[1]
-    actual = model(x)
-    print("Actual")
-    print(actual)
+    results = evaluate(loss_fn,loader,model,-1,0, 3)
+    print(results)
+    # actual = model(x)
+    # print("Actual")
+    # print(actual)
     return
 
 

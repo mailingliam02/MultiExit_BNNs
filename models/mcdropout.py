@@ -15,7 +15,6 @@ class MCDropout(nn.Dropout):
         self.inplace_bool = inplace
     
     def forward(self,x):
-        print(type(x))
         # If Dropout is applied in block, will be given outputs for each of the scales in a list!
         if type(x) == list:
             output = []
