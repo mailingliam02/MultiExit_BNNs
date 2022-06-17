@@ -26,7 +26,7 @@ def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = t
 
         # Gather data and report
         running_loss += loss.item()
-        all_losses.append(loss.item())
+        all_losses.append(loss.cpu().item())
         
         if i % 200 == 199:
             last_loss = running_loss / 200 # loss per batch
