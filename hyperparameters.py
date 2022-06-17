@@ -13,11 +13,11 @@ def get_hyperparameters():
     # Losses
     loss_hyperparameters = get_loss_hyperparameters(network_hyperparameters["n_exits"], model_type)
     test_loss_hyperparameters = get_test_hyperparameters(network_hyperparameters["n_exits"], model_type)
-    # Train and Val 
+    # Train and Val Loaders
     loader_hyperparameters = get_loader_hyperparameters()
     # Optimizer and Scheduler
-    opt_hyperparameters, sched_hyperparameters = get_opt_sched_hyperparameters()
-
+    opt_hyperparameters, sched_hyperparameters, max_norm = get_opt_sched_hyperparameters()
+    
     
     hyperparameters = dict(
         network = network_hyperparameters,
@@ -29,6 +29,7 @@ def get_hyperparameters():
         gpu = gpu,
         patience = patience,
         mc_dropout_passes = mc_dropout_passes,
+        max_norm = max_norm,
         loaders = loader_hyperparameters,
         )
     return hyperparameters
@@ -108,7 +109,8 @@ def get_opt_sched_hyperparameters():
     milestones = [150, 225],
     gamma = 0.1
     )
-    return cf_opt, cf_scheduler
+    max_norm = 1
+    return cf_opt, cf_scheduler, max_norm
 
 def get_loader_hyperparameters():
     hyperparameters = dict(dataset_name = "cifar100",

@@ -45,7 +45,9 @@ def main(_config):
     # Train Loop (do i need to return model?)
     model = train_loop(model,optimizer,scheduler,(train_loader,val_loader),
             loss_fn, experiment_id, gpu = hyperparameters["gpu"], 
-            epochs = hyperparameters["n_epochs"], patience = hyperparameters["patience"]) # model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gpu = -1
+            epochs = hyperparameters["n_epochs"], 
+            patience = hyperparameters["patience"],
+            max_norm = hyperparameters["max_norm"]) # model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gpu = -1
 
     # Evaluate the Network on Test
     test_loss_fn = to_train.get_loss_function(hyperparameters["test_loss"])
