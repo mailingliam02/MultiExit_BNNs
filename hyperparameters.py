@@ -2,9 +2,9 @@
 
 def get_hyperparameters():
     # Main
-    model_type = "msdnet"
+    model_type = "ivimnet"
     n_epochs = 1
-    gpu = 0
+    gpu = -1
     
 
     # Network
@@ -52,6 +52,20 @@ def get_network_hyperparameters(model_type):
             dropout_p = 0.4,
             load_model = None,
             )
+    elif model_type == "ivimnet":
+        hyperparams = dict(          # MSDNet architecture parameters
+            call = 'IVIMNet',
+            input_size = 32,
+            output_size = 100,
+            n_exits = 3, 
+            n_layers = 5, 
+            neurons_per_layer = [50, 100, 100, 100, 100], 
+            layers_with_exits = [1,3,5], # Layers start at 0!
+            dropout = "block",
+            dropout_exit = True,
+            dropout_p = 0.4,
+            load_model = None,
+            )
     if hyperparams["dropout"] is not None or hyperparams["dropout_exit"]:
         mc_dropout_passes = 10
     else:
@@ -59,7 +73,7 @@ def get_network_hyperparameters(model_type):
     return hyperparams, mc_dropout_passes
 
 def get_loss_hyperparameters(num_exits, model_type,loss_type = "distillation_annealing"):
-    if model_type == "msdnet":
+    if model_type == "msdnet" or model_type == "ivimnet":
         if loss_type == "distillation_annealing":
             loss = dict(         # distillation-based training with temperature
                                 # annealing
@@ -118,7 +132,7 @@ def get_loader_hyperparameters():
 
 
 def get_test_hyperparameters(n_exits, model_type):
-    if model_type == "msdnet":
+    if model_type == "msdnet" or "ivimnet":
         cf_loss = dict(  # evaluation metric
             call = 'MultiExitAccuracy',
             n_exits = n_exits,
