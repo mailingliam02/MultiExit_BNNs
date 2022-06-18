@@ -37,11 +37,14 @@ def validate_model_acc(loss_f, net, val_iter, gpu):
 def validate_model(loss_fn, net, val_iter, gpu):
     device = get_device(gpu)
     loss = 0
+    net.eval()
     for (x,y) in val_iter:
         x = x.to(device)
         y = y.to(device)
-        loss += loss_fn(net,x,y)
+        with torch.no_grad():
+            loss += loss_fn(net,x,y)
     loss /= len(val_iter)
+    net.train()
     return loss
 
 
