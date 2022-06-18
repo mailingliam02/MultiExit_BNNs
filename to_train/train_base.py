@@ -50,7 +50,7 @@ def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_i
     model = model.to(device=device)  # move the model parameters to CPU/GPU
     # Sets to train mode
     model.train()
-    best_accuracy = 0
+    best_val_loss = float("inf")
     counter = 0
     all_train_losses = []
     all_val_losses = []

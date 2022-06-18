@@ -242,6 +242,7 @@ class MsdNet(_TraceInForward):
                 m.bias.data.fill_(0.0)
             elif isinstance(m, nn.Linear):
                 if self.test_mode:
+                    n = m.in_features*m.out_features
                     m.weight.data.normal_(0.0, math.sqrt(2/n), generator = g_cpu)
                 m.bias.data.fill_(0.0)
 
