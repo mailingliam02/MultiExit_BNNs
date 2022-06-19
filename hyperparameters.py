@@ -12,11 +12,11 @@ def get_hyperparameters():
     # Losses
     loss_hyperparameters = get_loss_hyperparameters(network_hyperparameters["n_exits"], model_type)
     test_loss_hyperparameters = get_test_hyperparameters(network_hyperparameters["n_exits"], model_type)
-    # Train and Val 
+    # Train and Val Loaders
     loader_hyperparameters = get_loader_hyperparameters()
     # Optimizer and Scheduler
-    opt_hyperparameters, sched_hyperparameters = get_opt_sched_hyperparameters()
-
+    opt_hyperparameters, sched_hyperparameters, max_norm = get_opt_sched_hyperparameters()
+    
     
     hyperparameters = dict(
         network = network_hyperparameters,
@@ -26,7 +26,9 @@ def get_hyperparameters():
         n_epochs = n_epochs,
         test_loss = test_loss_hyperparameters,
         gpu = gpu,
+        patience = patience,
         mc_dropout_passes = mc_dropout_passes,
+        max_norm = max_norm,
         loaders = loader_hyperparameters,
         )
     return hyperparameters
@@ -47,8 +49,8 @@ def get_network_hyperparameters(model_type):
             prune = 'min',
             plane_reduction = 0.5, # Try this with 0 to avoid the halving
             exit_width = 128, # same as 128 dim 3x3 filters in exit?
-            dropout = "block",
-            dropout_exit = True,
+            dropout = None,
+            dropout_exit = False,
             dropout_p = 0.4,
             load_model = None,
             )
@@ -120,11 +122,13 @@ def get_opt_sched_hyperparameters():
     milestones = [150, 225],
     gamma = 0.1
     )
-    return cf_opt, cf_scheduler
+    max_norm = 1
+    return cf_opt, cf_scheduler, max_norm
 
 def get_loader_hyperparameters():
     hyperparameters = dict(dataset_name = "cifar100",
-        batch_size = (64,250,250), #(train, val, test)
+        batch_size = (64,64,250), #(train, val, test) 
+        # train and val batch sizes should be the same for plotting purposes
         augment = True,
         val_split = 0.1,
         )

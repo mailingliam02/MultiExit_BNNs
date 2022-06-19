@@ -43,15 +43,18 @@ def main(_config):
     # Get Scheduler
     scheduler = to_train.get_scheduler(optimizer,hyperparameters["scheduler"])
     # Train Loop (do i need to return model?)
-    model = train_loop(model,optimizer,scheduler,(train_loader,val_loader),loss_fn, experiment_id, gpu = hyperparameters["gpu"], epochs = hyperparameters["n_epochs"]) # model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gpu = -1
+    model = train_loop(model,optimizer,scheduler,(train_loader,val_loader),
+            loss_fn, experiment_id, gpu = hyperparameters["gpu"], 
+            epochs = hyperparameters["n_epochs"], 
+            patience = hyperparameters["patience"],
+            max_norm = hyperparameters["max_norm"]) # model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gpu = -1
 
     # Evaluate the Network on Test
     test_loss_fn = to_train.get_loss_function(hyperparameters["test_loss"])
     # loss_fn, test_iter, model, gpu
     results = evaluate(test_loss_fn, test_loader,model,hyperparameters["gpu"], experiment_id, hyperparameters["mc_dropout_passes"])
     # Save Model
-    torch.save("./snapshots/final_model_"+str(experiment_id))
-    
+    torch.save(model, "./MultiExit_BNNs/snapshots/final_model_"+str(experiment_id))
     return results
 
 if __name__ == "__main__":
