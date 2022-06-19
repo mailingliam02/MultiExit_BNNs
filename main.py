@@ -54,8 +54,7 @@ def main(_config):
     # loss_fn, test_iter, model, gpu
     results = evaluate(test_loss_fn, test_loader,model,hyperparameters["gpu"], experiment_id, hyperparameters["mc_dropout_passes"])
     # Save Model
-    torch.save("./snapshots/final_model_"+str(experiment_id))
-    
+    torch.save(model, "./MultiExit_BNNs/snapshots/final_model_"+str(experiment_id))
     return results
 
 if __name__ == "__main__":

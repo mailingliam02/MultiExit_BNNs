@@ -3,7 +3,7 @@
 def get_hyperparameters():
     # Main
     model_type = "msdnet"
-    n_epochs = 1
+    n_epochs = 300
     gpu = 0
     patience = 10
     
@@ -50,8 +50,8 @@ def get_network_hyperparameters(model_type):
             prune = 'min',
             plane_reduction = 0.5, # Try this with 0 to avoid the halving
             exit_width = 128, # same as 128 dim 3x3 filters in exit?
-            dropout = "block",
-            dropout_exit = True,
+            dropout = None,
+            dropout_exit = False,
             dropout_p = 0.4,
             load_model = None,
             )

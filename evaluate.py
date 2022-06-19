@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from to_train.loss import dict_drop
-from to_train.train_utils import validate_model, tab_str, get_device
+from to_train.train_utils import validate_model_acc, tab_str, get_device
 
 def evaluate(loss_fn, test_iter, model, gpu, experiment_id, mc_dropout_passes):
     # Is this needed again?
@@ -11,7 +11,8 @@ def evaluate(loss_fn, test_iter, model, gpu, experiment_id, mc_dropout_passes):
     loss_metrics = loss_fn.metric_names
     test_metrics = np.zeros((mc_dropout_passes,len(loss_metrics)))
     for i in range(mc_dropout_passes):
-        values = validate_model(loss_fn, model, test_iter, gpu)
+        values = validate_model_acc(loss_fn, model, test_iter, gpu)
+        values[-1] = values[-1].item()
         test_metrics[i] = values
     averaged_test_metrics = list(np.average(test_metrics, axis = 0))
     print(tab_str(*averaged_test_metrics))

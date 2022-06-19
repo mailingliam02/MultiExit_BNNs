@@ -26,10 +26,10 @@ def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = t
 
         # Gather data and report
         running_loss += loss.item()
-        all_losses.append(loss.cpu().item())
         
         if i % 200 == 199:
             last_loss = running_loss / 200 # loss per batch
+            all_losses.append(last_loss)
             print('  batch {} loss: {}'.format(i + 1, last_loss))
             running_loss = 0.
     return last_loss, all_losses
@@ -58,13 +58,13 @@ def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_i
         last_loss, train_losses = train_single_epoch(model,train_loader,optimizer,loss_fn, device, max_norm = max_norm)
         val_loss = validate_model(loss_fn, model, val_loader, gpu)
         all_train_losses += train_losses
-        all_val_losses.append(val_loss)
+        all_val_losses.append(val_loss.cpu())
         print(f"epoch: {e}, loss: {tab_str(last_loss)}, val_loss: {tab_str(val_loss)}")
         # had issues with trn_metrics, remove
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             counter = 0
-            torch.save(model, "./snapshots/best_val_model_"+str(experiment_id))
+            torch.save(model, "./MultiExit_BNNs/snapshots/best_val_model_"+str(experiment_id))
         else:
             counter += 1
             if counter > patience:
