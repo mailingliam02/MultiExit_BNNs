@@ -3,7 +3,7 @@ import numpy as np
 from to_train.loss import dict_drop
 from to_train.train_utils import validate_model_acc, tab_str, get_device
 
-def evaluate(loss_fn, test_iter, model, gpu, experiment_id, mc_dropout_passes):
+def evaluate(loss_fn, test_iter, model, gpu, experiment_id, mc_dropout_passes, create_log = True):
     # Is this needed again?
     net = model.to(get_device(gpu))
     # Setting train mode to false
@@ -15,9 +15,12 @@ def evaluate(loss_fn, test_iter, model, gpu, experiment_id, mc_dropout_passes):
         values[-1] = values[-1].item()
         test_metrics[i] = values
     averaged_test_metrics = list(np.average(test_metrics, axis = 0))
+    std_test_metrics = list(np.std(test_metrics, axis = 0))
     print(tab_str(*averaged_test_metrics))
+    print(tab_str(*std_test_metrics))
     # Log
-    log(loss_metrics,averaged_test_metrics, experiment_id)
+    if create_log:
+        log(loss_metrics,averaged_test_metrics, experiment_id)
     return averaged_test_metrics
 
 def log(loss_metrics,val_metrics, experiment_id):
