@@ -7,6 +7,7 @@ import numpy as np
 from torchvision import datasets
 from torchvision import transforms
 from torch.utils.data.sampler import SubsetRandomSampler
+from datasets.ivim import SimulatedIVIMDataset
 
 def get_dataloader(hyperparameters, random_seed = None):
     if random_seed is None:
@@ -19,12 +20,12 @@ def get_dataloader(hyperparameters, random_seed = None):
 
 # Inspired by https://gist.github.com/kevinzakka/d33bf8d6c7f06a9d8c76d97a7879f5cb
 class DatasetLoader:
-    def __init__(self,dataset_name= "cifar10", batch_size = (64,250,250), augment = True, random_seed = 42, valid_split = 0.2):
+    def __init__(self,dataset_name= "cifar10", batch_size = (64,64,250), augment = False, random_seed = 42, valid_split = 0.2):
         self.dataset_name = dataset_name
         self.train_batch_size = batch_size[0]
         self.val_batch_size = batch_size[1]
         self.test_batch_size = batch_size[2]
-        self.augment = False #
+        self.augment = augment
         self.valid_size = valid_split
         self.random_seed = random_seed
         self.data_dir = "./data/"+self.dataset_name
@@ -51,6 +52,12 @@ class DatasetLoader:
         elif self.dataset_name == "cifar100":
             self.mean=[0.5071, 0.4865, 0.4409]
             self.std=[0.2673, 0.2564, 0.2762]
+        elif self.dataset_name == "ivim_simulated":
+            # Transforms are applied in class (as is not image)
+            self.train_transforms = None
+            self.val_transforms = None
+            self.test_transforms = None
+            return None
         
         normalize = transforms.Normalize(mean = self.mean,std = self.std)   
         self.val_transforms = transforms.Compose([
@@ -90,7 +97,7 @@ class DatasetLoader:
                 root=self.data_dir, train=False,
                 download=False, transform=self.test_transforms,
             )
-        if self.dataset_name == "cifar100":
+        elif self.dataset_name == "cifar100":
             self.train_set = datasets.CIFAR100(
                 root=self.data_dir, train=True,
                 download=False, transform=self.train_transforms,
@@ -103,6 +110,16 @@ class DatasetLoader:
                 root=self.data_dir, train=False,
                 download=False, transform=self.test_transforms,
             )
+        elif self.dataset_name == "ivim_simulated":
+            self.train_set = SimulatedIVIMDataset(self.data_dir, dataset_type = "train",
+                transform=self.train_transforms, target_transform=None, valid_split = self.valid_size)
+            self.val_set = SimulatedIVIMDataset(self.data_dir, dataset_type = "val",
+                transform=self.val_transforms, target_transform=None, valid_split = self.valid_size)
+            self.test_set = SimulatedIVIMDataset(self.data_dir, dataset_type = "test",
+                transform=self.test_transforms, target_transform=None, valid_split = self.valid_size)
+            print(len(self.train_set),len(self.val_set),len(self.test_set))
+        elif self.dataset_name == "ivim_actual":
+            pass
         return None
     
     def _get_samplers(self):
