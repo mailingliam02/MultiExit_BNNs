@@ -10,6 +10,7 @@ from models.msdnet.msdnet_utils import MsdTransition, ConvBnRelu2d, View
 from tests.test_hyperparameters import get_msd_test_hyperparameters
 from tests.test_data import get_test_data
 from evaluate import evaluate
+from datasets.dataset_loader import get_dataloader
 
 def test_msdnet():
     hyperparameters = get_msd_test_hyperparameters()
@@ -245,7 +246,17 @@ def test_no_prune():
     return None
 
 if __name__ == "__main__":
-    test_msdnet()
+    hyperparameters = dict(dataset_name = "ivim_simulated",
+        batch_size = (64,64,250), #(train, val, test) 
+        # train and val batch sizes should be the same for plotting purposes
+        augment = False,
+        val_split = 0.1,
+        )
+    train, val, test = get_dataloader(hyperparameters)
+    print()
+    print(next(iter(train)))
+#if __name__ == "__main__":
+    #test_msdnet()
 
 
 
