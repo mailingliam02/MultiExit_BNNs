@@ -5,6 +5,7 @@ def get_hyperparameters():
     model_type = "ivimnet"
     n_epochs = 1
     gpu = -1
+    patience = 10
     
 
     # Network
