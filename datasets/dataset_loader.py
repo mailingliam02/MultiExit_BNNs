@@ -24,7 +24,7 @@ class DatasetLoader:
         self.train_batch_size = batch_size[0]
         self.val_batch_size = batch_size[1]
         self.test_batch_size = batch_size[2]
-        self.augment = False #
+        self.augment = augment
         self.valid_size = valid_split
         self.random_seed = random_seed
         self.data_dir = "./data/"+self.dataset_name
