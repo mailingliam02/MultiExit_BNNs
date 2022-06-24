@@ -2,6 +2,7 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 from to_train.loss import dict_drop
+from to_train import get_loss_function
 
 def get_device(gpu):
     return torch.device(f'cuda:{gpu}' if gpu >= 0 else 'cpu')
@@ -29,12 +30,28 @@ def get_scheduler(opt, hyperparameters):
 # Needs to be rewritten
 def validate_model_acc(loss_f, net, val_iter, gpu):
     metrics = []
-    for val_tuple in val_iter:
-        val_tuple = [t.to(get_device(gpu)) for t in val_tuple]
-        metrics += [loss_f.metrics(net, *val_tuple)]
+    with torch.no_grad():
+        for val_tuple in val_iter:
+            val_tuple = [t.to(get_device(gpu)) for t in val_tuple]
+            metrics += [loss_f.metrics(net, *val_tuple)]
     return [sum(metric) / len(metric) for metric in zip(*metrics)]
 
-def validate_model(loss_fn, net, val_iter, gpu):
+def validate_model(loss_fn,net,val_iter,gpu, acc = True, num_exits = 11):
+    if acc:
+        val_metrics = validate_model_acc(loss_fn,net,val_iter,gpu)
+        val_loss = 1 - val_metrics[0]
+    else:
+        # What to do about num exits?
+        val_hyperparams = dict(       # train with classification loss only
+                call = 'ClassificationOnlyLoss',
+                n_exits = net.n_exits,
+                acc_tops = [1, 5],
+            )
+        val_loss_fn = get_loss_function(val_hyperparams)
+        val_loss = validate_model_ce(val_loss_fn,net,val_iter,gpu)
+    return val_loss
+
+def validate_model_ce(loss_fn, net, val_iter, gpu):
     device = get_device(gpu)
     loss = 0
     net.eval()
