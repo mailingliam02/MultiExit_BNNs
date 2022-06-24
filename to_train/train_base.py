@@ -35,7 +35,9 @@ def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = t
     return last_loss, all_losses
 
 # From https://gitlab.doc.ic.ac.uk/lab2122_spring/DL_CW_1_lrc121/-/blob/master/dl_cw_1.ipynb
-def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_id, max_norm = 1, patience = 10, epochs=1, gpu = -1):
+def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_id, max_norm = 1, patience = 10, epochs=1, 
+                gpu = -1, val_loss_type = "acc"):
+                            # Change to str as opposed to bool
     """
     Train a model.
     
@@ -56,7 +58,7 @@ def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_i
     all_val_losses = []
     for e in range(epochs):
         last_loss, train_losses = train_single_epoch(model,train_loader,optimizer,loss_fn, device, max_norm = max_norm)
-        val_loss = validate_model(loss_fn, model, val_loader, gpu)
+        val_loss = validate_model(loss_fn, model, val_loader, gpu, loss_type = val_loss_type)
         all_train_losses += train_losses
         all_val_losses.append(val_loss)
         print(f"epoch: {e}, loss: {tab_str(last_loss)}, val_loss: {tab_str(val_loss)}")

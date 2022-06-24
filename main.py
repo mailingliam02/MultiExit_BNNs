@@ -53,7 +53,8 @@ def main(_config):
             loss_fn, experiment_id, gpu = hyperparameters["gpu"], 
             epochs = hyperparameters["n_epochs"], 
             patience = hyperparameters["patience"],
-            max_norm = hyperparameters["max_norm"]) # model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gpu = -1
+            max_norm = hyperparameters["max_norm"],
+            val_loss_type = hyperparameters["val_loss_type"]) # model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gpu = -1
 
     # Evaluate the Network on Test
     test_loss_fn = to_train.get_loss_function(hyperparameters["test_loss"])

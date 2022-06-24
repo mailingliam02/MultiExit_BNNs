@@ -35,11 +35,11 @@ def validate_model_acc(loss_f, net, val_iter, gpu):
             metrics += [loss_f.metrics(net, *val_tuple)]
     return [sum(metric) / len(metric) for metric in zip(*metrics)]
 
-def validate_model(loss_fn,net,val_iter,gpu, acc = True):
-    if acc:
+def validate_model(loss_fn,net,val_iter,gpu, loss_type = "acc"):
+    if loss_type == "acc":
         val_metrics = validate_model_acc(loss_fn,net,val_iter,gpu)
         val_loss = 1 - val_metrics[0]
-    else:
+    elif loss_type == "cross_entropy":
         # What to do about num exits?
         val_hyperparams = dict(       # train with classification loss only
                 call = 'ClassificationOnlyLoss',

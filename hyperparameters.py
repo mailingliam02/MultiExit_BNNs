@@ -11,7 +11,7 @@ def get_hyperparameters(args):
     # Network
     network_hyperparameters, mc_dropout_passes = get_network_hyperparameters(model_type, args)
     # Losses
-    loss_hyperparameters = get_loss_hyperparameters(network_hyperparameters["n_exits"], model_type)
+    loss_hyperparameters, val_loss_type = get_loss_hyperparameters(network_hyperparameters["n_exits"], model_type)
     test_loss_hyperparameters = get_test_hyperparameters(network_hyperparameters["n_exits"], model_type)
     # Train and Val Loaders
     loader_hyperparameters = get_loader_hyperparameters()
@@ -30,6 +30,7 @@ def get_hyperparameters(args):
         patience = patience,
         mc_dropout_passes = mc_dropout_passes,
         max_norm = max_norm,
+        val_loss_type = val_loss_type,
         loaders = loader_hyperparameters,
         )
     return hyperparameters
@@ -94,7 +95,8 @@ def get_loss_hyperparameters(num_exits, model_type,loss_type = "distillation_ann
     else:
         # Add standard loss function stuff here
         pass
-    return loss
+    val_loss_type = "acc"
+    return loss, val_loss_type
 
 def get_opt_sched_hyperparameters():
     cf_opt = dict(          # optimization method
