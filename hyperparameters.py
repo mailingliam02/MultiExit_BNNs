@@ -1,6 +1,6 @@
 
 
-def get_hyperparameters():
+def get_hyperparameters(args):
     # Main
     model_type = "msdnet"
     n_epochs = 300
@@ -9,7 +9,7 @@ def get_hyperparameters():
     
 
     # Network
-    network_hyperparameters, mc_dropout_passes = get_network_hyperparameters(model_type)
+    network_hyperparameters, mc_dropout_passes = get_network_hyperparameters(model_type, args)
     # Losses
     loss_hyperparameters = get_loss_hyperparameters(network_hyperparameters["n_exits"], model_type)
     test_loss_hyperparameters = get_test_hyperparameters(network_hyperparameters["n_exits"], model_type)
@@ -34,7 +34,7 @@ def get_hyperparameters():
         )
     return hyperparameters
 
-def get_network_hyperparameters(model_type):
+def get_network_hyperparameters(model_type, args):
     if model_type == "msdnet":
         hyperparams = dict(          # MSDNet architecture parameters
             call = 'MsdNet',
@@ -50,9 +50,9 @@ def get_network_hyperparameters(model_type):
             prune = 'min',
             plane_reduction = 0.5, # Try this with 0 to avoid the halving
             exit_width = 128, # same as 128 dim 3x3 filters in exit?
-            dropout = None,
-            dropout_exit = False,
-            dropout_p = 0.4,
+            dropout = args.dropout_type,
+            dropout_exit = args.dropout_exit,
+            dropout_p = args.dropout_p,
             load_model = None,
             )
     if hyperparams["dropout"] is not None or hyperparams["dropout_exit"]:

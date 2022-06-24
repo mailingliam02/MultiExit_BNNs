@@ -35,7 +35,7 @@ def validate_model_acc(loss_f, net, val_iter, gpu):
             metrics += [loss_f.metrics(net, *val_tuple)]
     return [sum(metric) / len(metric) for metric in zip(*metrics)]
 
-def validate_model(loss_fn,net,val_iter,gpu, acc = True, num_exits = 11):
+def validate_model(loss_fn,net,val_iter,gpu, acc = True):
     if acc:
         val_metrics = validate_model_acc(loss_fn,net,val_iter,gpu)
         val_loss = 1 - val_metrics[0]
@@ -48,6 +48,7 @@ def validate_model(loss_fn,net,val_iter,gpu, acc = True, num_exits = 11):
             )
         val_loss_fn = get_loss_function(val_hyperparams)
         val_loss = validate_model_ce(val_loss_fn,net,val_iter,gpu)
+        val_loss = val_loss.cpu()
     return val_loss
 
 def validate_model_ce(loss_fn, net, val_iter, gpu):

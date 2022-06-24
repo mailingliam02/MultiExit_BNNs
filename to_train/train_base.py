@@ -58,7 +58,7 @@ def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_i
         last_loss, train_losses = train_single_epoch(model,train_loader,optimizer,loss_fn, device, max_norm = max_norm)
         val_loss = validate_model(loss_fn, model, val_loader, gpu)
         all_train_losses += train_losses
-        all_val_losses.append(val_loss.cpu())
+        all_val_losses.append(val_loss)
         print(f"epoch: {e}, loss: {tab_str(last_loss)}, val_loss: {tab_str(val_loss)}")
         # had issues with trn_metrics, remove
         if val_loss < best_val_loss:

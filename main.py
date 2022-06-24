@@ -1,4 +1,5 @@
 import sacred
+import argparse
 import torch
 import torchvision.transforms
 import models
@@ -14,8 +15,13 @@ sacred.SETTINGS['HOST_INFO']['INCLUDE_GPU_INFO'] = False
 ex = sacred.Experiment()
 ex.observers.append(sacred.observers.FileStorageObserver.create(str(RUNS_DB_DIR)))
 
+parser = argparse.ArgumentParser(description="Adding dropout")
+parser.add_argument('--dropout_exit', type=bool, default=False)
+parser.add_argument('--dropout_p', type=float, default=0.5)
+parser.add_argument('--dropout_type', type=str, default="block")
+args = parser.parse_args()
 # Specify Hyperparameters (maybe add command line compatibility?)
-hyperparameters = get_hyperparameters()
+hyperparameters = get_hyperparameters(args)
 # Load any Utilities (like a timer, logging...)
 ex.add_config(hyperparameters)
 
