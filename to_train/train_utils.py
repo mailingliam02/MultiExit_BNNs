@@ -1,8 +1,7 @@
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
-from to_train.loss import dict_drop
-from to_train import get_loss_function
+from to_train.loss import dict_drop, get_loss_function
 
 def get_device(gpu):
     return torch.device(f'cuda:{gpu}' if gpu >= 0 else 'cpu')
