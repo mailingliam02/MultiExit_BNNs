@@ -12,7 +12,10 @@ def dict_drop(dic, *keys):
 
 def get_network(network_hyperparams):
     if network_hyperparams["load_model"] is not None:
-        model = torch.load(network_hyperparams["load_model"])
+        if torch.cuda.is_available():
+            model = torch.load(network_hyperparams["load_model"])
+        else:
+            model = torch.load(network_hyperparams["load_model"], map_location=torch.device('cpu'))
     elif network_hyperparams["call"] == "MsdNet":
         model = MsdNet(**dict_drop(network_hyperparams, "call", "load_model"))
     else:
