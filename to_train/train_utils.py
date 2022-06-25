@@ -38,6 +38,8 @@ def validate_model(loss_fn,net,val_iter,gpu, loss_type = "acc"):
     if loss_type == "acc":
         val_metrics = validate_model_acc(loss_fn,net,val_iter,gpu)
         val_loss = 1 - val_metrics[0]
+        train_metrics = loss_fn.trn_metrics
+        train_loss = 1 - train_metrics[0]
     elif loss_type == "cross_entropy":
         # What to do about num exits?
         val_hyperparams = dict(       # train with classification loss only
@@ -48,7 +50,7 @@ def validate_model(loss_fn,net,val_iter,gpu, loss_type = "acc"):
         val_loss_fn = get_loss_function(val_hyperparams)
         val_loss = validate_model_ce(val_loss_fn,net,val_iter,gpu)
         val_loss = val_loss.cpu()
-    return val_loss
+    return train_loss, val_loss
 
 def validate_model_ce(loss_fn, net, val_iter, gpu):
     device = get_device(gpu)

@@ -5,7 +5,6 @@ from to_train.train_utils import get_device, validate_model, tab_str, predict, p
 def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = torch.float32, max_norm = 10):
     running_loss = 0
     last_loss = 0
-    all_losses = []
     # Here, we use enumerate(training_loader) instead of
     # iter(training_loader) so that we can track the batch
     # index and do some intra-epoch reporting
@@ -29,10 +28,9 @@ def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = t
         
         if i % 200 == 199:
             last_loss = running_loss / 200 # loss per batch
-            all_losses.append(last_loss)
             print('  batch {} loss: {}'.format(i + 1, last_loss))
             running_loss = 0.
-    return last_loss, all_losses
+    return last_loss
 
 # From https://gitlab.doc.ic.ac.uk/lab2122_spring/DL_CW_1_lrc121/-/blob/master/dl_cw_1.ipynb
 def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_id, max_norm = 1, patience = 10, epochs=1, 
@@ -57,11 +55,11 @@ def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_i
     all_train_losses = []
     all_val_losses = []
     for e in range(epochs):
-        last_loss, train_losses = train_single_epoch(model,train_loader,optimizer,loss_fn, device, max_norm = max_norm)
-        val_loss = validate_model(loss_fn, model, val_loader, gpu, loss_type = val_loss_type)
-        all_train_losses += train_losses
+        last_loss = train_single_epoch(model,train_loader,optimizer,loss_fn, device, max_norm = max_norm)
+        train_loss, val_loss = validate_model(loss_fn, model, val_loader, gpu, loss_type = val_loss_type)
+        all_train_losses.append(train_loss)
         all_val_losses.append(val_loss)
-        print(f"epoch: {e}, loss: {tab_str(last_loss)}, val_loss: {tab_str(val_loss)}")
+        print(f"epoch: {e}, actual loss: {tab_str(last_loss)}, train_loss: {tab_str(train_loss)}, val_loss: {tab_str(val_loss)}")
         # had issues with trn_metrics, remove
         if val_loss < best_val_loss:
             best_val_loss = val_loss
