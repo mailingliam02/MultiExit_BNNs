@@ -3,9 +3,9 @@
 def get_hyperparameters(args):
     # Main
     model_type = "msdnet"
-    n_epochs = 300
+    n_epochs = args.n_epochs
     gpu = 0
-    patience = 10
+    patience = args.patience
     
 
     # Network
@@ -107,11 +107,14 @@ def get_opt_sched_hyperparameters():
     nesterov = True,
     )
     cf_scheduler = dict(   # learning rate schedule
-    call = 'MultiStepLR',
-    milestones = [150, 225],
-    gamma = 0.1
+    call = "ReduceLROnPlateau",
+    factor = 0.5,
+    patience = 10,
+    # call = 'MultiStepLR',
+    # milestones = [150, 225],
+    #gamma = 0.1
     )
-    max_norm = 1
+    max_norm = 2
     return cf_opt, cf_scheduler, max_norm
 
 def get_loader_hyperparameters():

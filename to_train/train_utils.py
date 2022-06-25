@@ -22,8 +22,7 @@ def get_optimizer(model, hyperparameters):
 
 def get_scheduler(opt, hyperparameters):
     Scheduler = getattr(torch.optim.lr_scheduler, hyperparameters['call'])
-    scheduler = Scheduler(opt, last_epoch=-1,
-                          **dict_drop(hyperparameters, 'call'))
+    scheduler = Scheduler(opt, **dict_drop(hyperparameters, 'call'))
     return scheduler
 
 # Needs to be rewritten
