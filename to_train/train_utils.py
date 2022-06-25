@@ -38,7 +38,7 @@ def validate_model(loss_fn,net,val_iter,gpu, loss_type = "acc"):
     if loss_type == "acc":
         val_metrics = validate_model_acc(loss_fn,net,val_iter,gpu)
         val_loss = 1 - val_metrics[0]
-        train_metrics = loss_fn.trn_metrics
+        train_metrics = loss_fn.trn_metrics()
         train_loss = 1 - train_metrics[0]
     elif loss_type == "cross_entropy":
         # What to do about num exits?
