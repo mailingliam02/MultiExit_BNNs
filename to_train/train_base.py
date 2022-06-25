@@ -69,7 +69,7 @@ def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_i
             counter += 1
             if counter > patience:
                 break
-        scheduler.step()
+        scheduler.step(val_loss)
     plot_loss(all_train_losses,all_val_losses, experiment_id)
     return model
 
