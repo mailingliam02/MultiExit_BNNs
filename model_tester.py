@@ -42,6 +42,21 @@ def calculate_overthinking(model, test_iter, gpu):
 
 # https://github.com/yigitcankaya/Shallow-Deep-Networks/blob/1719a34163d55ff237467c542db86b7e1f9d7628/model_funcs.py#L156
 def sdn_get_detailed_results(model, loader, gpu=0, mc_dropout = False, mc_passes = 10):
+    """
+    Returns:
+    layer_correct : dict
+        Each entry is a layer number containing the set of correctly
+        classified instances 
+    layer_wrong : dict
+        Each entry is a layer number containing the set of incorrectly
+        classified instances 
+    layer_predictions : dict
+        Each entry is a layer number containing a dictionary with the
+        associated predictions for each instance
+    layer_confidence : dict
+        Each entry is a layer number containing a dictionary with the
+        associated confidence of each prediction for each instance
+    """
     device = get_device(gpu)
     model.eval()
     layer_correct = {}
@@ -124,10 +139,86 @@ def wasteful_overthinking_experiment(model, test_loader, gpu=0, mc_dropout = Fal
         
     print('Total Comp: {}'.format(total_comp))
 
-# Difference in Confidence (and how much more/less confident it is compared )
+# To quantify the destructive effects of overthinking
+def destructive_overthinking_experiment(model, test_loader, gpu=0, mc_dropout = False, mc_passes = 10):
+    layer_correct, layer_wrong, _, layer_confidence = sdn_get_detailed_results(model, loader=test_loader, gpu=gpu, mc_dropout = mc_dropout, mc_passes = mc_passes)
+    layers = sorted(list(layer_correct.keys()))
 
+    end_wrong = layer_wrong[layers[-1]]
+    cum_correct = set()
+
+    for layer in layers:
+        cur_correct = layer_correct[layer]
+        cum_correct = cum_correct | cur_correct
+        cur_overthinking = cur_correct & end_wrong
+        
+        print('Output: {}'.format(layer))
+        print('Current correct: {}'.format(len(cur_correct)))
+        print('Cumulative correct: {}'.format(len(cum_correct)))
+        print('Cur cat. overthinking: {}\n'.format(len(cur_overthinking)))
+
+        total_confidence = 0.0
+        for instance in cur_overthinking:
+                total_confidence += layer_confidence[layer][instance]
+        
+        print('Average confidence on destructive overthinking instances:{}'.format(total_confidence/(0.1 + len(cur_overthinking))))
+        
+        total_confidence = 0.0
+        for instance in cur_correct:
+                total_confidence += layer_confidence[layer][instance]
+        
+        print('Average confidence on correctly classified :{}'.format(total_confidence/(0.1 + len(cur_correct))))
+
+# Difference in Confidence (and how much more/less confident it is compared )
+def compare_confidence():
+    # Need to look into metrics to measure error estimation
+    pass
 
 # Performance with Confidence-Based Exiting
+def theoretical_best_performance(model, test_loader, gpu=0, mc_dropout = False, mc_passes = 10):
+    layer_correct, layer_wrong, layer_predictions, layer_confidence = sdn_get_detailed_results(model, test_loader, gpu=gpu, mc_dropout = mc_dropout, mc_passes = mc_passes)
+    # No confidence exiting performance
+    layers = sorted(list(layer_correct.keys()))
+    end_correct = layer_correct[layers[-1]]
+    end_wrong = layer_wrong[layers[-1]]
+    total_number_of_samples = len(end_wrong)+len(end_correct)
+    accuracy = len(end_correct)/total_number_of_samples
+    # Confidence based exiting
+    cum_correct = set()
+    for layer in layers:
+        cur_correct = layer_correct[layer]
+        cum_correct = cum_correct | cur_correct
+    theoretical_best_acc = len(cum_correct)/total_number_of_samples
+    print(f"Current Final Exit Accuracy: {accuracy}")
+    print(f"Theoretical Best Final Accuracy: {theoretical_best_acc}")
+    return None
+
+def actual_best_performance(model, test_loader, gpu=0, mc_dropout = False, mc_passes = 10, confidence_threshold = 0.5):
+    layer_correct, layer_wrong, layer_predictions, layer_confidence = sdn_get_detailed_results(model, test_loader, gpu=gpu, mc_dropout = mc_dropout, mc_passes = mc_passes)
+    layers = sorted(list(layer_correct.keys()))
+    instances = sorted(list(layer_predictions[layers[0]].keys()))
+    end_correct = layer_correct[layers[-1]]
+    end_wrong = layer_wrong[layers[-1]]
+    total_number_of_samples = len(end_wrong)+len(end_correct)
+    final_correct = set()
+    final_wrong = set()
+    seen = set()
+    for layer in layers:
+        for instance in instances:
+            if layer_confidence[layer][instance] > confidence_threshold:
+                seen.add(instance)
+                if layer_predictions[layer][instance] in layer_correct[layer]:
+                    final_correct.add(instance)
+                # Add to predicted set
+                else:
+                    final_wrong.add(instance)
+        # remove seen instances
+        instances = instances.difference(seen)
+    assert len(instances) == 0
+    assert len(final_correct)+len(final_wrong) == total_number_of_samples
+    accuracy = len(final_correct)/total_number_of_samples
+    print(f"Actual Best Accuracy with confidence threshold {confidence_threshold}: {accuracy}")
+    return None
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Adding dropout")
@@ -152,7 +243,14 @@ if __name__ == "__main__":
         model = load_model(hyperparameters, model_num, model_type = "val")
         #results = evaluate(test_loss_fn, test_loader,model,hyperparameters["gpu"], 0, hyperparameters["mc_dropout_passes"], create_log = False)
         if model_num == "75":
-            pass
-            #wasteful_overthinking_experiment(model,test_loader,gpu=hyperparameters["gpu"])
+            results = evaluate(test_loss_fn, test_loader,model,hyperparameters["gpu"], 0, hyperparameters["mc_dropout_passes"], create_log = False)
+            wasteful_overthinking_experiment(model,test_loader,gpu=hyperparameters["gpu"])
+            destructive_overthinking_experiment(model,test_loader,gpu=hyperparameters["gpu"])
+            theoretical_best_performance(model,test_loader,gpu=hyperparameters["gpu"])
+            actual_best_performance(model,test_loader,gpu=hyperparameters["gpu"])
         else:
+            results = evaluate(test_loss_fn, test_loader,model,hyperparameters["gpu"], 0, hyperparameters["mc_dropout_passes"], create_log = False)
             wasteful_overthinking_experiment(model,test_loader,gpu=hyperparameters["gpu"], mc_dropout = True)
+            destructive_overthinking_experiment(model,test_loader,gpu=hyperparameters["gpu"], mc_dropout = True)
+            theoretical_best_performance(model,test_loader,gpu=hyperparameters["gpu"], mc_dropout = True)
+            actual_best_performance(model,test_loader,gpu=hyperparameters["gpu"], mc_dropout = True)
