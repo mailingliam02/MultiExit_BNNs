@@ -62,12 +62,16 @@ def sdn_get_detailed_results(model, loader, gpu=0, mc_dropout = False, mc_passes
             b_x = batch[0].to(device)
             b_y = batch[1].to(device)
             if mc_dropout:
-                holder = np.empty((mc_passes,len(outputs)))
+                holder = np.empty((mc_passes,len(outputs),b_x.shape[0],model.out_dim))
                 for i in range(mc_passes):
                     output = model(b_x)
-                    output_sm = [nn.functional.softmax(out, dim=1) for out in output]
-                    holder[i,:] = output_sm
-                output_sm = np.average(holder,axis = 0).tolist()
+                    output_sm = [nn.functional.softmax(out, dim=1).cpu().numpy() for out in output]
+                    output_sm_np = np.asarray(output_sm)
+                    holder[i,:] = output_sm_np
+                output_sm_np = np.average(holder,axis = 0).squeeze()
+                output_sm = []
+                for i in range(output_sm_np.shape[0]):
+                    output_sm.append(torch.from_numpy(output_sm_np[i]))
             else:
                 output = model(b_x)
                 output_sm = [nn.functional.softmax(out, dim=1) for out in output]
@@ -89,8 +93,8 @@ def sdn_get_detailed_results(model, loader, gpu=0, mc_dropout = False, mc_passes
     return layer_correct, layer_wrong, layer_predictions, layer_confidence
 
 # To quantify the wasteful effect of overthinking
-def wasteful_overthinking_experiment(model, test_loader, gpu=0):
-    layer_correct, _, _, _ = sdn_get_detailed_results(model, loader=test_loader, gpu=gpu)
+def wasteful_overthinking_experiment(model, test_loader, gpu=0, mc_dropout = False, mc_passes = 10):
+    layer_correct, _, _, _ = sdn_get_detailed_results(model, loader=test_loader, gpu=gpu, mc_dropout = mc_dropout, mc_passes = mc_passes)
     layers = sorted(list(layer_correct.keys()))
 
     end_correct = layer_correct[layers[-1]]
@@ -135,7 +139,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Specify Hyperparameters (maybe add command line compatibility?)
     hyperparameters = get_hyperparameters(args)
-
+    #hyperparameters["loaders"]["batch_size"] = (1,1,1)
     train_loader, val_loader, test_loader = datasets.get_dataloader(hyperparameters["loaders"])
     # Evaluate the Network on Test
     test_loss_fn = to_train.get_loss_function(hyperparameters["test_loss"])
@@ -147,4 +151,8 @@ if __name__ == "__main__":
     for model_num in model_list:
         model = load_model(hyperparameters, model_num, model_type = "val")
         #results = evaluate(test_loss_fn, test_loader,model,hyperparameters["gpu"], 0, hyperparameters["mc_dropout_passes"], create_log = False)
-        wasteful_overthinking_experiment(model,test_loader,gpu=hyperparameters["gpu"])
+        if model_num == "75":
+            pass
+            #wasteful_overthinking_experiment(model,test_loader,gpu=hyperparameters["gpu"])
+        else:
+            wasteful_overthinking_experiment(model,test_loader,gpu=hyperparameters["gpu"], mc_dropout = True)
