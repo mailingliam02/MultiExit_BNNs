@@ -88,9 +88,10 @@ def wasteful_overthinking_experiment(model, test_loader, gpu=0):
     end_correct = layer_correct[layers[-1]]
     total = 10000
 
-    # to quantify the computational waste
-    c_i = [0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
-    #[0.15, 0.3, 0.45, 0.6, 0.75, 0.9]
+    # to quantify the computational waste (see Results for FLOP breakdown)
+    c_i = [0.0614224109,0.1288826751,0.2280939973,0.2845412171,0.3630145257,
+            0.4635139233,0.6145380774,0.693011386,0.7935107836,0.9160362701,1]
+    #[,0.15, 0.3, 0.45, 0.6, 0.75, 0.9]
     total_comp = 0
 
     cum_correct = set()
