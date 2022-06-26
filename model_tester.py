@@ -2,6 +2,7 @@ import torch
 import models
 import to_train
 import argparse
+import numpy as np
 from torch import nn
 from evaluate import evaluate
 from hyperparameters import get_hyperparameters
@@ -40,7 +41,7 @@ def calculate_overthinking(model, test_iter, gpu):
 
 
 # https://github.com/yigitcankaya/Shallow-Deep-Networks/blob/1719a34163d55ff237467c542db86b7e1f9d7628/model_funcs.py#L156
-def sdn_get_detailed_results(model, loader, gpu=0):
+def sdn_get_detailed_results(model, loader, gpu=0, mc_dropout = False, mc_passes = 10):
     device = get_device(gpu)
     model.eval()
     layer_correct = {}
@@ -60,12 +61,19 @@ def sdn_get_detailed_results(model, loader, gpu=0):
         for cur_batch_id, batch in enumerate(loader):
             b_x = batch[0].to(device)
             b_y = batch[1].to(device)
-            output = model(b_x)
-            output_sm = [nn.functional.softmax(out, dim=1) for out in output]
+            if mc_dropout:
+                holder = np.empty((mc_passes,len(outputs)))
+                for i in range(mc_passes):
+                    output = model(b_x)
+                    output_sm = [nn.functional.softmax(out, dim=1) for out in output]
+                    holder[i,:] = output_sm
+                output_sm = np.average(holder,axis = 0).tolist()
+            else:
+                output = model(b_x)
+                output_sm = [nn.functional.softmax(out, dim=1) for out in output]
             for output_id in outputs:
                 cur_output = output[output_id]
                 cur_confidences = output_sm[output_id].max(1, keepdim=True)[0]
-
                 pred = cur_output.max(1, keepdim=True)[1]
                 is_correct = pred.eq(b_y.view_as(pred))
                 for test_id in range(len(b_x)):
