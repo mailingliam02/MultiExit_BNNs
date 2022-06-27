@@ -193,10 +193,16 @@ def theoretical_best_performance(model, test_loader, gpu=0, mc_dropout = False, 
     print(f"Theoretical Best Final Accuracy: {theoretical_best_acc}")
     return None
 
-def actual_best_performance(model, test_loader, gpu=0, mc_dropout = False, mc_passes = 10, confidence_threshold = 0.5):
+def actual_best_performance(model, test_loader, gpu=0, mc_dropout = False,
+    mc_passes = 10, confidence_list = [0.1, 0.15, 0.25, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.999]):
     layer_correct, layer_wrong, layer_predictions, layer_confidence = sdn_get_detailed_results(model, test_loader, gpu=gpu, mc_dropout = mc_dropout, mc_passes = mc_passes)
+    for confidence_threshold in confidence_list:
+        best_performance_with_confidence_threshold(layer_correct, layer_wrong, layer_predictions, layer_confidence, confidence_threshold)
+    return None
+
+def best_performance_with_confidence_threshold(layer_correct, layer_wrong, layer_predictions, layer_confidence, confidence_threshold):
     layers = sorted(list(layer_correct.keys()))
-    instances = sorted(list(layer_predictions[layers[0]].keys()))
+    instances = set(list(layer_predictions[layers[0]].keys()))
     end_correct = layer_correct[layers[-1]]
     end_wrong = layer_wrong[layers[-1]]
     total_number_of_samples = len(end_wrong)+len(end_correct)
@@ -205,9 +211,16 @@ def actual_best_performance(model, test_loader, gpu=0, mc_dropout = False, mc_pa
     seen = set()
     for layer in layers:
         for instance in instances:
-            if layer_confidence[layer][instance] > confidence_threshold:
+            if layer_confidence[layer][instance].item() > confidence_threshold:
                 seen.add(instance)
-                if layer_predictions[layer][instance] in layer_correct[layer]:
+                if layer_predictions[layer][instance].item() in layer_correct[layer]:
+                    final_correct.add(instance)
+                # Add to predicted set
+                else:
+                    final_wrong.add(instance)
+            elif layers[-1] == layer:
+                seen.add(instance)
+                if layer_predictions[layer][instance].item() in layer_correct[layer]:
                     final_correct.add(instance)
                 # Add to predicted set
                 else:
@@ -239,18 +252,19 @@ if __name__ == "__main__":
     print("Getting Network")
     # List of models to test
     model_list = ["75","76"]
+    confidence_thresholds = [0.1, 0.15, 0.25, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.999]
     for model_num in model_list:
-        model = load_model(hyperparameters, model_num, model_type = "val")
+        model = load_model(hyperparameters, model_num, model_type = "test")
         #results = evaluate(test_loss_fn, test_loader,model,hyperparameters["gpu"], 0, hyperparameters["mc_dropout_passes"], create_log = False)
         if model_num == "75":
-            results = evaluate(test_loss_fn, test_loader,model,hyperparameters["gpu"], 0, hyperparameters["mc_dropout_passes"], create_log = False)
-            wasteful_overthinking_experiment(model,test_loader,gpu=hyperparameters["gpu"])
-            destructive_overthinking_experiment(model,test_loader,gpu=hyperparameters["gpu"])
+            #results = evaluate(test_loss_fn, test_loader,model,hyperparameters["gpu"], 0, hyperparameters["mc_dropout_passes"], create_log = False)
+            #wasteful_overthinking_experiment(model,test_loader,gpu=hyperparameters["gpu"])
+            #destructive_overthinking_experiment(model,test_loader,gpu=hyperparameters["gpu"])
             theoretical_best_performance(model,test_loader,gpu=hyperparameters["gpu"])
-            actual_best_performance(model,test_loader,gpu=hyperparameters["gpu"])
+            actual_best_performance(model,test_loader,gpu=hyperparameters["gpu"],confidence_list = confidence_thresholds)
         else:
-            results = evaluate(test_loss_fn, test_loader,model,hyperparameters["gpu"], 0, hyperparameters["mc_dropout_passes"], create_log = False)
-            wasteful_overthinking_experiment(model,test_loader,gpu=hyperparameters["gpu"], mc_dropout = True)
-            destructive_overthinking_experiment(model,test_loader,gpu=hyperparameters["gpu"], mc_dropout = True)
+            #results = evaluate(test_loss_fn, test_loader,model,hyperparameters["gpu"], 0, hyperparameters["mc_dropout_passes"], create_log = False)
+            #wasteful_overthinking_experiment(model,test_loader,gpu=hyperparameters["gpu"], mc_dropout = True)
+            #destructive_overthinking_experiment(model,test_loader,gpu=hyperparameters["gpu"], mc_dropout = True)
             theoretical_best_performance(model,test_loader,gpu=hyperparameters["gpu"], mc_dropout = True)
-            actual_best_performance(model,test_loader,gpu=hyperparameters["gpu"], mc_dropout = True)
+            actual_best_performance(model,test_loader,gpu=hyperparameters["gpu"], mc_dropout = True, confidence_list = confidence_thresholds)
