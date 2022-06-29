@@ -5,6 +5,7 @@ import argparse
 import types
 import numpy as np
 from torch import nn
+from KDEpy import FFTKDE
 from evaluate import evaluate
 from hyperparameters import get_hyperparameters
 from to_train.train_utils import get_device
@@ -12,13 +13,6 @@ import datasets
 import torch
 import numpy as np
 import torch.nn.parallel
-
-from KDEpy import FFTKDE
-
-# Difference in Confidence (and how much more/less confident it is compared )
-def compare_confidence():
-    # Need to look into metrics to measure error estimation
-    pass
 
 class ResourceLoader():
     def __init__(self):
@@ -253,18 +247,38 @@ class OverthinkingEvaluation():
             print('Average confidence on correctly classified :{}'.format(total_confidence/(0.1 + len(cur_correct))))
         return None
 
+    def get_plot_data(self, dropout_bool):
+        layers = sorted(list(self.layer_correct.keys()))
+        instances = set(list(self.layer_predictions[layers[0]].keys()))
+        for layer in layers:
+            for instance in instances:
+                if self.layer_predictions[layer][instance].item() in self.layer_correct[layer]:
+                    if dropout_bool:
+                        print(str(layer) + ",Correct,MC Dropout," + str(self.layer_confidence[layer][instance].item()))
+                    else:
+                        print(str(layer) + ",Correct,Standard," + str(self.layer_confidence[layer][instance].item()))
+                else:
+                    if dropout_bool:
+                        print(str(layer) + ",Incorrect,MC Dropout," + str(self.layer_confidence[layer][instance].item()))
+                    else:
+                        print(str(layer) + ",Incorrect,Standard," + str(self.layer_confidence[layer][instance].item()))
+        return None
 
+# Almost all from https://github.com/zhang64-llnl/Mix-n-Match-Calibration/blob/e41afbaf8181a0bd2fb194f9e9d30bcbe5b7f6c3/util_evaluation.py#L176
 class UncertaintyQuantification():
     def __init__(self,model, test_loader, gpu = 0, 
         mc_dropout = False, mc_passes = 10):
-        p_evals, labels = self.get_preds(model,test_loader, gpu = gpu, mc_dropout = mc_dropout, mc_passes = mc_passes)
-        ece, nll, mse, accu = self.ece_eval_binary(p_evals, labels)
+        labels, p_evals, combined_p_evals = self.get_preds(model,test_loader, gpu = gpu, mc_dropout = mc_dropout, mc_passes = mc_passes)
+        for exit_i in range(model.n_exits):
+            ece, nll, mse, accu = self.ece_eval_binary(p_evals[exit_i], labels)
+            print(f"ECE: {ece}, NLL: {nll}, MSE: {mse}, Accuracy: {accu}")
+        ece, nll, mse, accu = self.ece_eval_binary(combined_p_evals, labels)
         print(f"ECE: {ece}, NLL: {nll}, MSE: {mse}, Accuracy: {accu}")
 
     def get_preds(self, model, loader, gpu=0, mc_dropout = False, mc_passes = 10):
         num_instances = len(loader.dataset)
         labels = np.zeros((num_instances,model.out_dim))
-        preds = np.empty((num_instances,model.out_dim))
+        preds = np.empty((model.n_exits,num_instances,model.out_dim))
         device = get_device(gpu)
         outputs = list(range(model.n_exits))
         model.eval()
@@ -285,13 +299,16 @@ class UncertaintyQuantification():
                         output_sm.append(torch.from_numpy(output_sm_np[i]))
                 else:
                     output = model(b_x)
-                    output_sm = [nn.functional.softmax(out, dim=1) for out in output]
+                    output_sm = [nn.functional.softmax(out, dim=1).cpu().numpy() for out in output]
+                    output_sm_np = np.asarray(output_sm)
                 for instance_id in range(b_x.shape[0]):
                     correct_output = b_y[instance_id].item()
                     labels[cur_batch_id*b_x.shape[0]+instance_id][correct_output] = 1
-                print(cur_batch_id*b_x.shape[0], (1+cur_batch_id)*b_x.shape[0])
-                preds[cur_batch_id*b_x.shape[0]:(1+cur_batch_id)*b_x.shape[0], :] = output_sm
-        return labels, preds
+                # Will probably have issues if dataset size is not divisble by batch size
+                preds[:,cur_batch_id*b_x.shape[0]:(1+cur_batch_id)*b_x.shape[0], :] = output_sm_np
+                # Get combined average of each p
+                combined_preds = np.average(preds, axis = 0)
+        return labels, preds, combined_preds
 
     def mirror_1d(self, d, xmin=None, xmax=None):
         """If necessary apply reflecting boundary conditions."""
@@ -451,6 +468,7 @@ class UncertaintyQuantification():
     def ece_eval_binary(self,p, label):
         mse = np.mean(np.sum((p-label)**2,1)) # Mean Square Error
         N = p.shape[0]
+        p = np.clip(p,1e-256,1-1e-256)
         nll = -np.sum(label*np.log(p))/N # log_likelihood
         accu = (np.sum((np.argmax(p,1)-np.array([np.where(r==1)[0][0] for r in label]))==0)/p.shape[0]) # Accuracy
         ece = self.ece_hist_binary(p,label).cpu().numpy() # ECE
@@ -467,16 +485,28 @@ if __name__ == "__main__":
     parser.add_argument('--model_type', type=str, default='val')
     parser.add_argument('--dropout', type = bool, default = False)
     parser.add_argument('--num_passes', type=int, default=10)
+    parser.add_argument('--confidence_exiting', type=bool, default = False)
     parser.add_argument('--overthinking', type=bool,default = False)
+    parser.add_argument('--uq', type=bool, default = False)
+    parser.add_argument('--plotting',type=bool,default = False)
     args = parser.parse_args()
     resources = ResourceLoader()
     test_loader = resources.get_loader()
     model = resources.get_model(args.model_num, model_type = "val")
-    experiment = OverthinkingEvaluation(model, test_loader, gpu = 0, 
-        mc_dropout = args.dropout, mc_passes = args.num_passes)
-    experiment.theoretical_best_performance()
-    experiment.actual_best_performance()
-    if args.overthinking:
-        experiment.destructive_overthinking_experiment()
-        experiment.wasteful_overthinking_experiment()
+    if args.confidence_exiting or args.overthinking or args.plotting:
+        experiment = OverthinkingEvaluation(model, test_loader, gpu = 0, 
+            mc_dropout = args.dropout, mc_passes = args.num_passes)
+        if args.confidence_exiting:
+            experiment.theoretical_best_performance()
+            experiment.actual_best_performance()
+        if args.overthinking:
+            experiment.destructive_overthinking_experiment()
+            experiment.wasteful_overthinking_experiment()
+        if args.plotting:
+            experiment.get_plot_data(args.dropout)
+    if args.uq:
+        UncertaintyQuantification(model, test_loader, gpu = 0, 
+            mc_dropout = args.dropout, mc_passes = args.num_passes)
+
+
 
