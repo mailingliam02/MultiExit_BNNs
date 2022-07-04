@@ -9,6 +9,7 @@ from hyperparameters import get_hyperparameters
 from to_train import train_loop
 from evaluate import evaluate
 from utils import RUNS_DB_DIR
+from model_tester import FullAnalysis
 
 sacred.SETTINGS['CAPTURE_MODE'] = 'sys'
 sacred.SETTINGS['HOST_INFO']['INCLUDE_GPU_INFO'] = False
@@ -21,6 +22,7 @@ parser.add_argument('--dropout_p', type=float, default=0.5)
 parser.add_argument('--dropout_type', type=str, default=None)
 parser.add_argument('--n_epochs', type=int, default=300)
 parser.add_argument('--patience', type=int, default=50)
+parser.add_argument('--full_analysis_and_save', type=bool, default = False)
 args = parser.parse_args()
 # Specify Hyperparameters (maybe add command line compatibility?)
 hyperparameters = get_hyperparameters(args)
@@ -64,6 +66,11 @@ def main(_config):
     results = evaluate(test_loss_fn, test_loader,model,hyperparameters["gpu"], experiment_id, hyperparameters["mc_dropout_passes"])
     # Save Model
     torch.save(model, "./MultiExit_BNNs/snapshots/final_model_"+str(experiment_id))
+    if args.full_analysis_and_save:
+        full_analyzer = FullAnalysis(model, test_loader, gpu = 0, 
+            mc_dropout = args.dropout, mc_passes = args.num_passes)
+        full_analyzer.all_experiments(experiment_id)
+        full_analyzer.save_validation(experiment_id, val_loader)
     return results
 
 if __name__ == "__main__":
