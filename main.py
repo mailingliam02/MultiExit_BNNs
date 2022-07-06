@@ -67,8 +67,10 @@ def main(_config):
     # Save Model
     torch.save(model, "./MultiExit_BNNs/snapshots/final_model_"+str(experiment_id))
     if args.full_analysis_and_save:
+        if args.dropout_exit or args.dropout_type is not None:
+            dropout = True
         full_analyzer = FullAnalysis(model, test_loader, gpu = 0, 
-            mc_dropout = args.dropout, mc_passes = args.num_passes)
+            mc_dropout = dropout, mc_passes = hyperparameters["mc_dropout_passes"])
         full_analyzer.all_experiments(experiment_id)
         full_analyzer.save_validation(experiment_id, val_loader)
     return results
