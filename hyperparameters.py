@@ -11,7 +11,7 @@ def get_hyperparameters(args):
     # Network
     network_hyperparameters, mc_dropout_passes = get_network_hyperparameters(model_type, args)
     # Losses
-    loss_hyperparameters, val_loss_type = get_loss_hyperparameters(network_hyperparameters["n_exits"], model_type)
+    loss_hyperparameters, val_loss_type = get_loss_hyperparameters(network_hyperparameters["n_exits"], model_type, args)
     test_loss_hyperparameters = get_test_hyperparameters(network_hyperparameters["n_exits"], model_type)
     # Train and Val Loaders
     loader_hyperparameters = get_loader_hyperparameters()
@@ -56,15 +56,18 @@ def get_network_hyperparameters(model_type, args):
             dropout_p = args.dropout_p,
             load_model = None,
             )
+        if not args.multiexit:
+            hyperparams["execute_exits"] = hyperparams["n_exits"] - 1
+
     if hyperparams["dropout"] is not None or hyperparams["dropout_exit"]:
         mc_dropout_passes = 10
     else:
         mc_dropout_passes = 1
     return hyperparams, mc_dropout_passes
 
-def get_loss_hyperparameters(num_exits, model_type,loss_type = "distillation_annealing"):
+def get_loss_hyperparameters(num_exits, model_type, args, loss_type = "distillation_annealing"):
     if model_type == "msdnet":
-        if loss_type == "distillation_annealing":
+        if loss_type == "distillation_annealing" and args.multiexit:
             loss = dict(         # distillation-based training with temperature
                                 # annealing
             call = 'DistillationBasedLoss',
@@ -76,7 +79,7 @@ def get_loss_hyperparameters(num_exits, model_type,loss_type = "distillation_ann
             global_scale = 2.0 * 5/num_exits, # Not mentioned in paper
             # Temperature multiplier is 1.05 by default
             )
-        elif loss_type == "distillation_constant":
+        elif loss_type == "distillation_constant" and args.multiexit:
             loss = dict(       # distillation-based training with constant
                                 # temperature
                 call = 'DistillationLossConstTemp',
@@ -86,7 +89,7 @@ def get_loss_hyperparameters(num_exits, model_type,loss_type = "distillation_ann
                 T = 4.0,
                 global_scale = 2.0 * 5/num_exits,
             )
-        elif loss_type == "classification":
+        elif loss_type == "classification" or not args.multiexit:
             loss = dict(       # train with classification loss only
                 call = 'ClassificationOnlyLoss',
                 n_exits = num_exits,
