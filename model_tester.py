@@ -682,7 +682,7 @@ class FullAnalysis():
             all_output_probs = np.empty((self.mc_passes,len(self.outputs),b_x.shape[0],self.model.out_dim))
             all_outputs = np.empty((self.mc_passes,len(self.outputs),b_x.shape[0],self.model.out_dim))
             for i in range(self.mc_passes):
-                output = model(b_x)
+                output = self.model(b_x)
                 output_sm = [nn.functional.softmax(out, dim=1).cpu().numpy() for out in output]
                 output = [out.cpu().numpy() for out in output]
                 output_sm_np = np.asarray(output_sm)
@@ -696,7 +696,7 @@ class FullAnalysis():
                 output_sm.append(torch.from_numpy(output_sm_np[i]))
                 output.append(torch.from_numpy(output_np[i]))
         else:
-            output = model(b_x)
+            output = self.model(b_x)
             output_sm = [nn.functional.softmax(out, dim=1) for out in output]
             output_sm_np = [nn.functional.softmax(out, dim=1).cpu().numpy() for out in output]
             output_sm_np = np.asarray(output_sm_np)
