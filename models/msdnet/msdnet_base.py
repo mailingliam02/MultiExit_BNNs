@@ -260,7 +260,8 @@ class MsdNet(_TraceInForward):
             if i in self._execute_exits:
                 logits += [self.exits[i](h[-1])]  # At this point could check threshold to exit
             else:
-                logits += [()]
+                pass
+                #logits += [()]
         # Deletes intermediary results
         x[-1]
         # Stores exit outputs
