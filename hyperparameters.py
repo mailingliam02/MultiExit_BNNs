@@ -2,9 +2,9 @@
 
 def get_hyperparameters(args):
     # Main
-    model_type = "msdnet"
+    model_type = args.backbone
     n_epochs = args.n_epochs
-    gpu = 0
+    gpu = args.gpu
     patience = args.patience
     
 
@@ -12,9 +12,9 @@ def get_hyperparameters(args):
     network_hyperparameters, mc_dropout_passes = get_network_hyperparameters(model_type, args)
     # Losses
     loss_hyperparameters, val_loss_type = get_loss_hyperparameters(network_hyperparameters["n_exits"], model_type, args)
-    test_loss_hyperparameters = get_test_hyperparameters(network_hyperparameters["n_exits"], model_type)
+    test_loss_hyperparameters = get_test_hyperparameters(network_hyperparameters["n_exits"], model_type, args)
     # Train and Val Loaders
-    loader_hyperparameters = get_loader_hyperparameters()
+    loader_hyperparameters = get_loader_hyperparameters(args)
     # Optimizer and Scheduler
     opt_hyperparameters, sched_hyperparameters, max_norm = get_opt_sched_hyperparameters()
     
@@ -56,8 +56,31 @@ def get_network_hyperparameters(model_type, args):
             dropout_p = args.dropout_p,
             load_model = None,
             )
-        if not args.multiexit:
-            hyperparams["execute_exits"] = hyperparams["n_exits"] - 1
+        if args.single_exit:
+            hyperparams["execute_exits"] = [hyperparams["n_exits"] - 1]
+    elif model_type == "resnet18":
+        hyperparams = dict(
+            call = "ResNet18",
+            resnet_type = "early_exit",
+            load_model = None,
+            out_dim = 100,
+            exit_after = -1, # exit after all blocks
+            complexity_factor = 1.2, #effects size of intermediary layers? Set to default
+            dropout = args.dropout_type,
+            dropout_exit = args.dropout_exit,
+            dropout_p = args.dropout_p,
+            n_exits = 10 # Doesn't affect network, but does effect loss!!!
+        )
+        if args.single_exit and (args.dropout_exit or args.dropout_type is not None):
+            hyperparams["resnet_type"] = ""
+            hyperparams["n_exits"] = 1            
+
+        if args.single_exit:
+            hyperparams["resnet_type"] = None
+            hyperparams["n_exits"] = 1
+        
+        if args.dropout_exit or args.dropout_type is not None:
+            hyperparams["resnet_type"] = "mc_early_exit"
 
     if hyperparams["dropout"] is not None or hyperparams["dropout_exit"]:
         mc_dropout_passes = 10
@@ -67,7 +90,7 @@ def get_network_hyperparameters(model_type, args):
 
 def get_loss_hyperparameters(num_exits, model_type, args, loss_type = "distillation_annealing"):
     if model_type == "msdnet":
-        if loss_type == "distillation_annealing" and args.multiexit:
+        if loss_type == "distillation_annealing" and not args.single_exit:
             loss = dict(         # distillation-based training with temperature
                                 # annealing
             call = 'DistillationBasedLoss',
@@ -79,7 +102,7 @@ def get_loss_hyperparameters(num_exits, model_type, args, loss_type = "distillat
             global_scale = 2.0 * 5/num_exits, # Not mentioned in paper
             # Temperature multiplier is 1.05 by default
             )
-        elif loss_type == "distillation_constant" and args.multiexit:
+        elif loss_type == "distillation_constant" and not args.single_exit:
             loss = dict(       # distillation-based training with constant
                                 # temperature
                 call = 'DistillationLossConstTemp',
@@ -89,15 +112,32 @@ def get_loss_hyperparameters(num_exits, model_type, args, loss_type = "distillat
                 T = 4.0,
                 global_scale = 2.0 * 5/num_exits,
             )
-        elif loss_type == "classification" or not args.multiexit:
+        elif loss_type == "classification" or args.single_exit:
             loss = dict(       # train with classification loss only
                 call = 'ClassificationOnlyLoss',
                 n_exits = num_exits,
                 acc_tops = [1, 5],
             )
-    else:
+    elif model_type == "resnet18":
         # Add standard loss function stuff here
-        pass
+        if loss_type == "distillation_annealing" and not args.single_exit:
+            loss = dict(         # distillation-based training with temperature
+                                # annealing
+            call = 'DistillationBasedLoss',
+            n_exits = num_exits,
+            acc_tops = [1, 5],
+            
+            C = 0.5, # Confidence Limit (?)
+            maxprob = 0.5, 
+            global_scale = 2.0 * 5/num_exits, # Not mentioned in paper
+            # Temperature multiplier is 1.05 by default
+            )
+        elif loss_type == "classification" or args.single_exit:
+            loss = dict(       # train with classification loss only
+                call = 'ClassificationOnlyLoss',
+                n_exits = num_exits,
+                acc_tops = [1, 5],
+            )
     val_loss_type = "acc"
     return loss, val_loss_type
 
@@ -120,21 +160,25 @@ def get_opt_sched_hyperparameters():
     max_norm = 2
     return cf_opt, cf_scheduler, max_norm
 
-def get_loader_hyperparameters():
+def get_loader_hyperparameters(args):
     hyperparameters = dict(dataset_name = "cifar100",
         batch_size = (64,64,250), #(train, val, test) 
         # train and val batch sizes should be the same for plotting purposes
         augment = True,
         val_split = 0.1,
         )
+    if args.backbone == "resnet18":
+        hyperparameters["batch_size"] = (128,128,250)
     return hyperparameters
 
 
-def get_test_hyperparameters(n_exits, model_type):
-    if model_type == "msdnet":
+def get_test_hyperparameters(n_exits, model_type,args):
+    if model_type == "msdnet" or model_type == "resnet18":
         cf_loss = dict(  # evaluation metric
             call = 'MultiExitAccuracy',
             n_exits = n_exits,
             acc_tops = (1,5),
         )
+        if args.single_exit:
+            cf_loss["n_exits"] = 1
     return cf_loss

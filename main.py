@@ -21,9 +21,11 @@ parser.add_argument('--dropout_exit', type=bool, default=False)
 parser.add_argument('--dropout_p', type=float, default=0.5)
 parser.add_argument('--dropout_type', type=str, default=None)
 parser.add_argument('--n_epochs', type=int, default=300)
-parser.add_argument('--patience', type=int, default=50)
+parser.add_argument('--patience', type=int, default=300)
 parser.add_argument('--full_analysis_and_save', type=bool, default = False)
-parser.add_argument('--multiexit', type=bool, default=True)
+parser.add_argument('--single_exit', type=bool, default=False)
+parser.add_argument('--backbone', type=str, default = "msdnet")
+parser.add_argument('--gpu', type=int,default=0)
 args = parser.parse_args()
 # Specify Hyperparameters (maybe add command line compatibility?)
 hyperparameters = get_hyperparameters(args)
@@ -68,9 +70,10 @@ def main(_config):
     # Save Model
     torch.save(model, "./MultiExit_BNNs/snapshots/final_model_"+str(experiment_id))
     if args.full_analysis_and_save:
+        dropout = False
         if args.dropout_exit or args.dropout_type is not None:
             dropout = True
-        full_analyzer = FullAnalysis(model, test_loader, gpu = 0, 
+        full_analyzer = FullAnalysis(model, test_loader, gpu = hyperparameters["gpu"], 
             mc_dropout = dropout, mc_passes = hyperparameters["mc_dropout_passes"])
         full_analyzer.all_experiments(experiment_id)
         full_analyzer.save_validation(experiment_id, val_loader)
