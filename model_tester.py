@@ -25,7 +25,7 @@ class ResourceLoader():
 
     def get_model(self, model_num, model_type = "val"):
         if model_type == "val":
-            path = "/vol/bitbucket/lrc121/ind_proj/MultiExit_BNNs/snapshots/"
+            path = "./MultiExit_BNNs/snapshots/"
             model_type = "best_val_model_"
             print("Testing ", model_type+model_num)
             model_state = path+model_type+model_num
@@ -33,7 +33,7 @@ class ResourceLoader():
             # Follow og for info on how to parallelize!
             model = models.get_network(self.hyperparameters["network"])
         elif model_type == "test":
-            path = "/vol/bitbucket/lrc121/ind_proj/MultiExit_BNNs/snapshots/"
+            path = "./MultiExit_BNNs/snapshots/"
             model_type = "final_model_"
             print("Testing ", model_type+model_num)
             model_state = path+model_type+model_num
@@ -47,7 +47,8 @@ class ResourceLoader():
     
     def fake_args(self):
         args = types.SimpleNamespace(dropout_exit = False, dropout_p = 0.5,
-            dropout_type = None, n_epochs = 300, patience = 50)
+            dropout_type = None, n_epochs = 300, patience = 50, backbone = "msdnet", 
+            single_exit = False)
         return args
     
 
@@ -600,7 +601,6 @@ class FullAnalysis():
         ensembled_preds = np.empty((self.model.n_exits,num_instances,self.model.out_dim))
         preds = np.empty((self.model.n_exits,num_instances,self.model.out_dim))
 
-
         self.outputs = list(range(self.model.n_exits))
        
         layer_correct, layer_wrong, layer_predictions, layer_confidence = self._init_layer_trackers()
@@ -660,7 +660,7 @@ class FullAnalysis():
 
     def save_validation(self, experiment_id, loader):
         preds, ensemble_preds, labels = self.get_validation_predictions(loader)
-        with open(f"/vol/bitbucket/lrc121/ind_proj/validation_predictions_{experiment_id}.npy", 'wb') as file:
+        with open(f"validation_predictions_{experiment_id}.npy", 'wb') as file:
             np.save(file, preds)
             np.save(file, ensemble_preds)
             np.save(file, labels)
@@ -964,7 +964,7 @@ class FullAnalysis():
                 full_str = ",".join(list_str) + "\n"
                 file.write(full_str)
         # Save ensemble, preds and labels for further analysis
-        with open(f"/vol/bitbucket/lrc121/ind_proj/test_predictions_{experiment_id}.npy", 'wb') as file:
+        with open(f"test_predictions_{experiment_id}.npy", 'wb') as file:
             np.save(file, self.preds)
             np.save(file, self.ensemble_preds)
             np.save(file, self.labels)
