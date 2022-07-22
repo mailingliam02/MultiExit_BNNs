@@ -72,14 +72,14 @@ def get_network_hyperparameters(model_type, args):
             n_exits = 10 # Doesn't affect network, but does effect loss!!!
         )
         if args.single_exit and (args.dropout_exit or args.dropout_type is not None):
-            hyperparams["resnet_type"] = ""
+            hyperparams["resnet_type"] = "mc"
             hyperparams["n_exits"] = 1            
 
-        if args.single_exit:
+        elif args.single_exit:
             hyperparams["resnet_type"] = None
             hyperparams["n_exits"] = 1
         
-        if args.dropout_exit or args.dropout_type is not None:
+        elif args.dropout_exit or args.dropout_type is not None:
             hyperparams["resnet_type"] = "mc_early_exit"
 
     if hyperparams["dropout"] is not None or hyperparams["dropout_exit"]:

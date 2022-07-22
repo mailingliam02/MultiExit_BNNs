@@ -15,7 +15,7 @@ def get_res_net_20(ensemble, network_hyperparams):
         return ResNet20EarlyExit(**dict_drop(network_hyperparams,"call", "load_model","resnet_type","dropout","dropout_exit", "dropout_p", "n_exits"))
 
     elif ensemble == "mc":
-        return ResNet20MCDrop(**dict_drop(network_hyperparams,"call", "load_model","resnet_type", "n_exits"))
+        return ResNet20MCDrop(**dict_drop(network_hyperparams,"call", "load_model","resnet_type", "n_exits","exit_after"))
 
     elif ensemble == "mc_early_exit":
         return ResNet20MCEarlyExit(**dict_drop(network_hyperparams,"call", "load_model","resnet_type", "n_exits"))
@@ -312,6 +312,8 @@ class ResNet20MCDrop(ResNet20EarlyExit):
         if self.dropout is not None:
             for block_idx in self.drop_after:            
                 self.blocks[block_idx].add_module("dropout", MCDropout(self.drop_prob))
+        
+        self.blocks = nn.Sequential(*self.blocks)
 
         if self.dropout_exit:
             self.__delattr__("out_block")
@@ -326,8 +328,7 @@ class ResNet20MCDrop(ResNet20EarlyExit):
         x = self.in_block(x)
         x = self.blocks(x)
         x = self.out_block(x)
-
-        return x
+        return [x]
 
 if __name__ == "__main__":
     resnet_ee = ResNet20EarlyExit()
