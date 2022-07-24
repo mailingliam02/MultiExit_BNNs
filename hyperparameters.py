@@ -60,7 +60,7 @@ def get_network_hyperparameters(model_type, args):
             hyperparams["execute_exits"] = [hyperparams["n_exits"] - 1]
     elif model_type == "resnet20":
         hyperparams = dict(
-            call = "ResNet18",
+            call = "ResNet20",
             resnet_type = "early_exit",
             load_model = None,
             out_dim = 100,
@@ -170,6 +170,26 @@ def get_loss_hyperparameters(num_exits, model_type, args, loss_type = "distillat
                 n_exits = num_exits,
                 acc_tops = [1, 5],
             )
+    elif model_type == "resnet20":
+        # Add standard loss function stuff here
+        if loss_type == "distillation_annealing" and not args.single_exit:
+            loss = dict(         # distillation-based training with temperature
+                                # annealing
+            call = 'DistillationBasedLoss',
+            n_exits = num_exits,
+            acc_tops = [1, 5],
+            
+            C = 0.5, # Confidence Limit (?)
+            maxprob = 0.5, 
+            global_scale = 2.0 * 5/num_exits, # Not mentioned in paper
+            # Temperature multiplier is 1.05 by default
+            )
+        elif loss_type == "classification" or args.single_exit:
+            loss = dict(       # train with classification loss only
+                call = 'ClassificationOnlyLoss',
+                n_exits = num_exits,
+                acc_tops = [1, 5],
+            )
     val_loss_type = "acc"
     return loss, val_loss_type
 
@@ -199,7 +219,7 @@ def get_loader_hyperparameters(args):
         augment = True,
         val_split = 0.1,
         )
-    if args.backbone == "resnet18":
+    if args.backbone == "resnet18" or args.backbone == "resnet20":
         hyperparameters["batch_size"] = (128,128,250)
     return hyperparameters
 
