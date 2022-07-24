@@ -43,6 +43,7 @@ class ExitEnsembleDistillation(_MultiExitAccuracy):
                 L_O += 0.1 * loss4by4
 
         elif self.loss_output == 'MSE':
+            MSEloss = nn.MSELoss(reduction='mean').cuda()
             loss_mse_1 = MSEloss(middle_output1, target_output)
             loss_mse_2 = MSEloss(middle_output2, target_output)
             loss_mse_3 = MSEloss(middle_output3, target_output)
