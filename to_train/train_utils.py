@@ -41,7 +41,7 @@ def validate_model(loss_fn,net,val_iter,gpu, loss_type = "acc"):
         # train is avg acc, val_loss is top_1_acc
         train_loss, val_loss = loss_fn.validate(val_iter, net, device)
 
-    if loss_type == "acc":
+    elif loss_type == "acc":
         val_metrics = validate_model_acc(loss_fn,net,val_iter,gpu)
         val_loss = 1 - val_metrics[0]
         train_metrics = loss_fn.trn_metrics()
