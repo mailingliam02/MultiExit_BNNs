@@ -180,3 +180,4 @@ class ResNet18EarlyExitLee(ResNet):
     def __init__(self,n_exits = 4, out_dim = 100, *args,  **kwargs):
         super().__init__(block=BasicBlock, num_blocks=[2,2,2,2], num_classes=out_dim, *args,  **kwargs)
         self.n_exits = n_exits
+        self.out_dim = out_dim
