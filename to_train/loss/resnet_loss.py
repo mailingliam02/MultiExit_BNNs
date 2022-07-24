@@ -11,7 +11,7 @@ class ExitEnsembleDistillation(_MultiExitAccuracy):
         self.temperature = temperature
 
 
-    def __call__(self, net, X, y, *self):
+    def __call__(self, net, X, y):
         _ = net(X)
         output, middle_output1, middle_output2, middle_output3, \
             final_fea, middle1_fea, middle2_fea, middle3_fea = net.intermediary_output_list
@@ -92,7 +92,7 @@ class ExitEnsembleDistillation(_MultiExitAccuracy):
 
         return res
 
-    def validate(val_loader, model, device):
+    def validate(self, val_loader, model, device):
         model.eval()
         top1_acc = 0
         avg_acc = 0
