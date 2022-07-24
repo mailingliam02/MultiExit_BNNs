@@ -1,275 +1,182 @@
-import numpy as np
-import torch
+# Original code: https://github.com/pytorch/vision/blob/master/torchvision/models/resnet.py
+
 import torch.nn as nn
+import math
+import numpy as np
 import torch.nn.functional as F
-
-# All from https://github.com/ajrcampbell/early-exit-ensembles/blob/main/src/models/res_net_18.py
-def get_res_net_18(ensemble, **kwargs):
-
-    if ensemble is None:
-        return ResNet18(**kwargs)
-
-    elif ensemble == "early_exit":
-        return ResNet18EarlyExit(**kwargs)
-
-    elif ensemble == "mc_dropout":
-        return ResNet18MCDrop(**kwargs)
-
-    elif ensemble == "deep":
-        return ResNet18(**kwargs)
-
-    elif ensemble == "depth":
-        return ResNet18Depth(**kwargs)
-
-    else:
-        NotImplementedError("ensemble not implemented: '{}'".format(ensemble))
-
-
-def init_weights(model):
-
-    for module in model.modules():
-
-        if isinstance(module, nn.Conv1d):
-            nn.init.kaiming_normal_(module.weight, mode="fan_out", nonlinearity="relu")
-
-        elif isinstance(module, nn.BatchNorm1d):
-            nn.init.constant_(module.weight, 1)
-            nn.init.constant_(module.bias, 0)
 
 
 def conv3x3(in_planes, out_planes, stride=1):
-    return nn.Conv1d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
-
-
-def _conv1x1(in_planes, out_planes, stride=1):
-    return nn.Conv1d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
+    "3x3 convolution with padding"
+    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
+                     padding=1, bias=False)
 
 
 class BasicBlock(nn.Module):
+    expansion = 1
 
     def __init__(self, inplanes, planes, stride=1, downsample=None):
-        super().__init__()
-
+        super(BasicBlock, self).__init__()
         self.conv1 = conv3x3(inplanes, planes, stride)
-        self.bn1 = nn.BatchNorm1d(planes)
-        self.relu = nn.ReLU(inplace=True)
+        self.bn1 = nn.BatchNorm2d(planes)
         self.conv2 = conv3x3(planes, planes)
-        self.bn2 = nn.BatchNorm1d(planes)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.relu = nn.ReLU(inplace=False)
+
         self.downsample = downsample
         self.stride = stride
 
     def forward(self, x):
+        residual = x
 
-        identity = x
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
+
         out = self.conv2(out)
         out = self.bn2(out)
 
         if self.downsample is not None:
-            identity = self.downsample(x)
+            residual = self.downsample(x)
 
-        out += identity
+        out += residual
         out = self.relu(out)
 
         return out
 
 
-class ResNet18(nn.Module):
+class Bottleneck(nn.Module):
+    expansion = 4
 
-    name = "res_net_18"
+    def __init__(self, inplanes, planes, stride=1, downsample=None):
+        super(Bottleneck, self).__init__()
 
-    def __init__(self, out_channels, seed=None):
-        super().__init__()
+        self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.conv3 = nn.Conv2d(planes, planes * Bottleneck.expansion, kernel_size=1, bias=False)
+        self.bn3 = nn.BatchNorm2d(planes * Bottleneck.expansion)
+        self.relu = nn.ReLU(inplace=False)
 
-        self.out_channels = out_channels
-        self.seed = seed
-
-        self.hidden_sizes = [64, 128, 256, 512]
-        self.layers = [2, 2, 2, 2]
-        self.strides = [1, 2, 2, 2]
-        self.inplanes = self.hidden_sizes[0]
-
-        in_block = [nn.Conv1d(1, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)]
-        in_block += [nn.BatchNorm1d(self.inplanes)]
-        in_block += [nn.ReLU(inplace=True)]
-        in_block += [nn.MaxPool1d(kernel_size=3, stride=2, padding=1)]
-        self.in_block = nn.Sequential(*in_block)
-
-        blocks = []
-        for h, l, s in zip(self.hidden_sizes, self.layers, self.strides):
-            blocks += [self._make_layer(h, l, s)]
-        self.blocks = nn.Sequential(*blocks)
-
-        out_block = [nn.AdaptiveAvgPool1d(1)]
-        out_block += [nn.Flatten(1)]
-        out_block += [nn.Linear(self.hidden_sizes[-1], self.out_channels)]
-        self.out_block = nn.Sequential(*out_block)
-
-        if self.seed is not None:
-            torch.manual_seed(seed)
-
-        self.apply(init_weights)
-
-    def _make_layer(self, planes, blocks, stride=1):
-
-        downsample = None
-
-        if stride != 1 or self.inplanes != planes:
-            downsample = nn.Sequential(_conv1x1(self.inplanes, planes, stride), nn.BatchNorm1d(planes))
-
-        layers = [BasicBlock(self.inplanes, planes, stride, downsample)]
-        self.inplanes = planes
-
-        for _ in range(1, blocks):
-            layers += [BasicBlock(self.inplanes, planes)]
-        
-        return nn.Sequential(*layers)
+        self.downsample = downsample
+        self.stride = stride
 
     def forward(self, x):
+        residual = x
 
-        x = self.in_block(x)
-        x = self.blocks(x)
-        x = self.out_block(x)
+        out = self.conv1(x)
+        out = F.relu(self.bn1(out))
 
-        return x
+        out = self.conv2(out)
+        out = F.relu(self.bn2(out))
 
+        out = self.conv3(out)
+        out = self.bn3(out)
+        if self.downsample is not None:
+            residual = self.downsample(x)
 
-class ExitBlock(nn.Module):
-
-    def __init__(self, in_channels, hidden_sizes, out_channels):
-        super().__init__()
-
-        layers = [nn.AdaptiveAvgPool1d(1)]
-        layers += [nn.Flatten(1)]
-        layers += [nn.Linear(in_channels, hidden_sizes)]
-        layers += [nn.ReLU()]
-        layers += [nn.Linear(hidden_sizes, out_channels)]
-        self.layers = nn.Sequential(*layers)
-
-    def forward(self, x):
-
-        return self.layers(x)
-
-
-class ResNet18EarlyExit(ResNet18):
-    
-    name = "res_net_18_early_exit"
-
-    def __init__(self, *args, exit_after=-1, complexity_factor=1.2, **kwargs):
-        self.exit_after = exit_after
-        self.complexity_factor = complexity_factor
-
-        super().__init__(*args, **kwargs)
-
-        to_exit = [2, 8, 15, 24, 31, 40, 47, 56]
-        hidden_sizes = len(self.hidden_sizes)
-
-        num_hidden = len(self.hidden_sizes)
-        exit_hidden_sizes = [int(((self.complexity_factor ** 0.5) ** (num_hidden - idx)) * self.hidden_sizes[-1]) for idx in range(num_hidden)]
-        exit_hidden_sizes = [h for pair in zip(exit_hidden_sizes, exit_hidden_sizes) for h in pair]
-
-        if self.exit_after == -1:
-            self.exit_after = range(len(to_exit))
-
-        num_exits = len(to_exit)
-
-        if (len(self.exit_after) > num_exits) or not set(self.exit_after).issubset(list(range(num_exits))):
-            raise ValueError("valid exit points: {}".format(", ".join(str(n) for n in range(num_exits))))
-
-        self.exit_hidden_sizes = np.array(exit_hidden_sizes)[self.exit_after]
-
-        blocks = []
-        for idx, module in enumerate(self.blocks.modules()):
-            if idx in to_exit:
-                blocks += [module]
-        self.blocks = nn.ModuleList(blocks)
-
-        idx = 0
-        exit_blocks = []
-        for block_idx, block in enumerate(self.blocks):
-            if block_idx in self.exit_after:
-                in_channels = block.conv1.out_channels
-                exit_blocks += [ExitBlock(in_channels, self.exit_hidden_sizes[idx], self.out_channels)]
-                idx += 1
-        self.exit_blocks = nn.ModuleList(exit_blocks)
-
-        self.apply(init_weights)
-
-    def forward(self, x):
-
-        out = self.in_block(x)
-
-        out_blocks = []
-        for block in self.blocks:
-            out = block(out)
-            out_blocks += [out]
-
-        out_exits = []
-        for exit_after, exit_block in zip(self.exit_after, self.exit_blocks):
-            out = exit_block(out_blocks[exit_after])
-            out_exits += [out]
-
-        out = self.out_block(out_blocks[-1])
-        out = torch.stack(out_exits + [out], dim=1)
+        out += residual
+        out = F.relu(out)
 
         return out
 
 
-class MCDropout(nn.Dropout):
+class ResNet(nn.Module):
+    def __init__(self, block=BasicBlock, num_blocks=[2,2,2,2], num_classes=100):
+        super(ResNet, self).__init__()
+        self.inplanes = 64
+
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(64)
+        self.relu = nn.ReLU(inplace=False)
+        self.layer1 = self._make_layer(block, 64, num_blocks[0], stride=1)
+        self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
+        self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
+        self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
+        self.linear = nn.Linear(512*block.expansion, num_classes)
+
+        self.ex1conv1 = nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1, bias=False)
+        self.ex1conv2 = nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1, bias=False)
+        self.ex1conv3 = nn.Conv2d(256, 512, kernel_size=3, stride=2, padding=1, bias=False)
+        self.ex1bn1 = nn.BatchNorm2d(128)
+        self.ex1bn2 = nn.BatchNorm2d(256)
+        self.ex1bn3 = nn.BatchNorm2d(512)
+        self.ex1linear = nn.Linear(512, num_classes)
+
+        self.ex2conv1 = nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1, bias=False)
+        self.ex2conv2 = nn.Conv2d(256, 512, kernel_size=3, stride=2, padding=1, bias=False)
+        self.ex2bn1 = nn.BatchNorm2d(256)
+        self.ex2bn2 = nn.BatchNorm2d(512)
+        self.ex2linear = nn.Linear(512, num_classes)
+
+        self.ex3conv1 = nn.Conv2d(256, 512, kernel_size=3, stride=2, padding=1, bias=False)
+        self.ex3bn1 = nn.BatchNorm2d(512)
+        self.ex3linear = nn.Linear(512, num_classes)
+
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
+
+    def _make_layer(self, block, planes, blocks, stride=1):
+        downsample = None
+        if stride != 1 or self.inplanes != planes * block.expansion:
+            downsample = nn.Sequential(
+                nn.Conv2d(self.inplanes, planes * block.expansion, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(planes * block.expansion),
+            )
+
+        layers = []
+        layers.append(block(self.inplanes, planes, stride, downsample))
+        self.inplanes = planes * block.expansion
+        for i in range(1, blocks):
+            layers.append(block(self.inplanes, planes))
+
+        return nn.Sequential(*layers)
 
     def forward(self, x):
-        return F.dropout(x, self.p, True, self.inplace)
+        out = self.bn1(self.conv1(x))
+        out = self.layer1(out)
 
+        out1 = self.ex1bn1(self.ex1conv1(F.relu(out)))
+        out1 = self.ex1bn2(self.ex1conv2(F.relu(out1)))
+        out1 = self.ex1bn3(self.ex1conv3(F.relu(out1)))
+        out1 = F.avg_pool2d(F.relu(out1), 4)
+        middle1_fea = out1
+        out1 = out1.view(out1.size(0), -1)
+        out1 = self.ex1linear(out1)
 
-class ResNet18MCDrop(ResNet18EarlyExit):
-    
-    name = "res_net_18_mc_drop"
+        out = self.layer2(out)
 
-    def __init__(self, *args, drop_after=-1, drop_prob=0.2, **kwargs):
-        self.drop_after = drop_after
-        self.drop_prob = drop_prob
+        out2 = self.ex2bn1(self.ex2conv1(F.relu(out)))
+        out2 = self.ex2bn2(self.ex2conv2(F.relu(out2)))
+        out2 = F.avg_pool2d(F.relu(out2), 4)
+        middle2_fea = out2
+        out2 = out2.view(out2.size(0), -1)
+        out2 = self.ex2linear(out2)
 
-        super().__init__(*args, exit_after=drop_after, **kwargs)
+        out = self.layer3(out)
 
-        self.drop_after = self.exit_after
+        out3 = self.ex3bn1(self.ex3conv1(F.relu(out)))
+        out3 = F.avg_pool2d(F.relu(out3), 4)
+        middle3_fea = out3
+        out3 = out3.view(out3.size(0), -1)
+        out3 = self.ex3linear(out3)
 
-        self.__delattr__("exit_after")
-        self.__delattr__("exit_blocks")
+        out = self.layer4(out)
 
-        for block_idx in self.drop_after:            
-            self.blocks[block_idx].add_module("dropout", MCDropout(self.drop_prob))
+        out = F.avg_pool2d(F.relu(out), 4)
+        final_fea = out
+        out = out.view(out.size(0), -1)
+        out = self.linear(out)
+        self.intermediary_output_list = (out, out1, out2, out3, final_fea, middle1_fea, middle2_fea, middle3_fea)
+        return [[out1], [out2], [out3], [out]]
 
-    def forward(self, x):
-
-        x = self.in_block(x)
-        x = self.blocks(x)
-        x = self.out_block(x)
-
-        return x
-
-
-class ResNet18Depth(ResNet18):
-
-    name = "res_net_18_depth"
-
-    def __init__(self, *args, max_depth=1, **kwargs):
-        self.max_depth = max_depth
-        
-        super().__init__(*args, **kwargs)
-
-        num_blocks = len(self.hidden_sizes)
-
-        if self.max_depth == -1:
-            self.max_depth = len(self.hidden_sizes)
-
-        elif (max_depth > num_blocks) or (max_depth < 1):
-            raise ValueError("valid depths: {}".format(", ".join(str(n) for n in range(1, num_blocks + 1))))
-
-        self.blocks = self.blocks[:self.max_depth]
-
-        out_block = [nn.AdaptiveAvgPool1d(1)]
-        out_block += [nn.Flatten(1)]
-        out_block += [nn.Linear(self.hidden_sizes[self.max_depth - 1], self.out_channels)]
-        self.out_block = nn.Sequential(*out_block)
+class ResNet18EarlyExitLee(ResNet):
+    def __init__(self,n_exits = 4, out_dim = 100, *args,  **kwargs):
+        super().__init__(block=BasicBlock, num_blocks=[2,2,2,2], num_classes=out_dim, *args,  **kwargs)
+        self.n_exits = n_exits

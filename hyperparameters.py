@@ -58,7 +58,7 @@ def get_network_hyperparameters(model_type, args):
             )
         if args.single_exit:
             hyperparams["execute_exits"] = [hyperparams["n_exits"] - 1]
-    elif model_type == "resnet18":
+    elif model_type == "resnet20":
         hyperparams = dict(
             call = "ResNet18",
             resnet_type = "early_exit",
@@ -70,6 +70,28 @@ def get_network_hyperparameters(model_type, args):
             dropout_exit = args.dropout_exit,
             dropout_p = args.dropout_p,
             n_exits = 10 # Doesn't affect network, but does effect loss!!!
+        )
+        if args.single_exit and (args.dropout_exit or args.dropout_type is not None):
+            hyperparams["resnet_type"] = "mc"
+            hyperparams["n_exits"] = 1            
+
+        elif args.single_exit:
+            hyperparams["resnet_type"] = None
+            hyperparams["n_exits"] = 1
+        
+        elif args.dropout_exit or args.dropout_type is not None:
+            hyperparams["resnet_type"] = "mc_early_exit"
+
+    elif model_type == "resnet18":
+        hyperparams = dict(
+            call = "ResNet18",
+            resnet_type = "early_exit",
+            load_model = None,
+            out_dim = 100,
+            dropout = args.dropout_type,
+            dropout_exit = args.dropout_exit,
+            dropout_p = args.dropout_p,
+            n_exits = 4 # Doesn't affect network, but does effect loss!!!
         )
         if args.single_exit and (args.dropout_exit or args.dropout_type is not None):
             hyperparams["resnet_type"] = "mc"
@@ -119,8 +141,18 @@ def get_loss_hyperparameters(num_exits, model_type, args, loss_type = "distillat
                 acc_tops = [1, 5],
             )
     elif model_type == "resnet18":
+        if not args.single_exit:
+            loss = dict(
+                call = "ExitEnsembleDistillation",
+                n_exits = num_exits,
+                acc_tops = [1,5],
+                use_EED = True, 
+                loss_output = "MSE", 
+                use_feature_dist = False, # beta = 0
+                temperature = 3 # default value from paper
+            )
         # Add standard loss function stuff here
-        if loss_type == "distillation_annealing" and not args.single_exit:
+        elif loss_type == "distillation_annealing" and not args.single_exit:
             loss = dict(         # distillation-based training with temperature
                                 # annealing
             call = 'DistillationBasedLoss',

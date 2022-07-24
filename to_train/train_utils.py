@@ -2,6 +2,7 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 from to_train.loss import dict_drop, get_loss_function
+from to_train.loss.resnet_loss import ExitEnsembleDistillation
 
 def get_device(gpu):
     return torch.device(f'cuda:{gpu}' if gpu >= 0 else 'cpu')
@@ -35,6 +36,11 @@ def validate_model_acc(loss_f, net, val_iter, gpu):
     return [sum(metric) / len(metric) for metric in zip(*metrics)]
 
 def validate_model(loss_fn,net,val_iter,gpu, loss_type = "acc"):
+    if isinstance(loss_fn, ExitEnsembleDistillation):
+        device = get_device(gpu)
+        # train is avg acc, val_loss is top_1_acc
+        train_loss, val_loss = loss_fn.validate(val_iter, net, device)
+
     if loss_type == "acc":
         val_metrics = validate_model_acc(loss_fn,net,val_iter,gpu)
         val_loss = 1 - val_metrics[0]
