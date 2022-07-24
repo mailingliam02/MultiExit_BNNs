@@ -1,5 +1,7 @@
 import torch
+import torch.nn as nn
 from to_train.loss.base_classes import _MultiExitAccuracy
+
 # https://github.com/hjdw2/Exit-Ensemble-Distillation/blob/main/train.py
 class ExitEnsembleDistillation(_MultiExitAccuracy):
     def __init__(self, n_exits, acc_tops=(1,), use_EED = True, loss_output = "MSE", use_feature_dist = False, temperature = 3):
