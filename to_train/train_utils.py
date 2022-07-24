@@ -39,7 +39,9 @@ def validate_model(loss_fn,net,val_iter,gpu, loss_type = "acc"):
     if isinstance(loss_fn, ExitEnsembleDistillation):
         device = get_device(gpu)
         # train is avg acc, val_loss is top_1_acc
-        train_loss, val_loss = loss_fn.validate(val_iter, net, device)
+        train_acc, val_acc = loss_fn.validate(val_iter, net, device)
+        val_loss = 1 - val_acc
+        train_loss = 1 - train_acc
 
     elif loss_type == "acc":
         val_metrics = validate_model_acc(loss_fn,net,val_iter,gpu)
