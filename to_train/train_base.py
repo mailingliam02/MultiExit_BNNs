@@ -59,7 +59,7 @@ def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_i
         train_loss, val_loss = validate_model(loss_fn, model, val_loader, gpu, loss_type = val_loss_type)
         all_train_losses.append(train_loss)
         all_val_losses.append(val_loss)
-        print(f"epoch: {e}, actual loss: {tab_str(last_loss)}, train_loss: {tab_str(train_loss)}, val_loss: {tab_str(val_loss)}")
+        print(f"epoch: {e}, actual loss: {tab_str(last_loss)}, train_loss: {tab_str(train_loss)}, val_loss: {tab_str(val_loss)}, learning_rate: {optimizer.param_groups[0]['lr']}")
         # had issues with trn_metrics, remove
         if val_loss < best_val_loss:
             best_val_loss = val_loss
