@@ -174,7 +174,7 @@ class ResNet(nn.Module):
         out = out.view(out.size(0), -1)
         out = self.linear(out)
         self.intermediary_output_list = (out, out1, out2, out3, final_fea, middle1_fea, middle2_fea, middle3_fea)
-        return [[out1], [out2], [out3], [out]]
+        return [out1, out2, out3, out]
 
 class ResNet18EarlyExitLee(ResNet):
     def __init__(self,n_exits = 4, out_dim = 100, *args,  **kwargs):
