@@ -114,7 +114,7 @@ class ExitEnsembleDistillation(_MultiExitAccuracy):
                 middle3_prec1 = self.accuracy(middle_output3.data, target, topk=(1,))
                 top1_acc += prec1[0]
                 avg_acc += (prec1[0]+middle1_prec1[0]+middle2_prec1[0]+middle3_prec1[0])/4
-        top1_acc /= len(val_loader)
-        avg_acc /= len(val_loader)
+        top1_acc /= len(val_loader)*100
+        avg_acc /= len(val_loader)*100
         model.train()
         return avg_acc, top1_acc 
