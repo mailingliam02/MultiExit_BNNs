@@ -85,7 +85,7 @@ def get_network_hyperparameters(model_type, args):
     elif model_type == "resnet18":
         hyperparams = dict(
             call = "ResNet18",
-            resnet_type = "early_exit",
+            resnet_type = "early_exit_lee",
             load_model = None,
             out_dim = 100,
             dropout = args.dropout_type,
@@ -205,12 +205,11 @@ def get_loader_hyperparameters(args):
 
 
 def get_test_hyperparameters(n_exits, model_type,args):
-    if model_type == "msdnet" or model_type == "resnet18":
-        cf_loss = dict(  # evaluation metric
-            call = 'MultiExitAccuracy',
-            n_exits = n_exits,
-            acc_tops = (1,5),
-        )
-        if args.single_exit:
-            cf_loss["n_exits"] = 1
+    cf_loss = dict(  # evaluation metric
+        call = 'MultiExitAccuracy',
+        n_exits = n_exits,
+        acc_tops = (1,5),
+    )
+    if args.single_exit:
+        cf_loss["n_exits"] = 1
     return cf_loss
