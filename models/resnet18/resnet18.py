@@ -234,3 +234,67 @@ class ResNet18MC(ResNet):
             out = self.exit_dropout(out)
         out = self.linear(out)
         return [out]
+
+class ResNet18MCEarlyExitLee(ResNet):
+    def __init__(self,dropout_exit = False, dropout = None, dropout_p = 0.5, n_exits = 4, out_dim = 100, *args,  **kwargs):
+        super().__init__(block=BasicBlock, num_blocks=[2,2,2,2], num_classes=out_dim, *args,  **kwargs)
+        self.n_exits = n_exits
+        self.out_dim = out_dim
+        self.dropout_exit = dropout_exit
+        self.dropout = dropout
+        self.dropout_p = dropout_p
+        layer_list = [self.layer1, self.layer2, self.layer3, self.layer4]
+        if dropout is not None:
+            for i in range(len(layer_list)):
+                layer_list[i].add_module("dropout", MCDropout(self.dropout_p))
+        if self.dropout_exit:
+            self.exit1_dropout = MCDropout(self.dropout_p)
+            self.exit2_dropout = MCDropout(self.dropout_p)
+            self.exit3_dropout = MCDropout(self.dropout_p)
+            self.exit_dropout = MCDropout(self.dropout_p)
+
+    def forward(self, x):
+        out = self.bn1(self.conv1(x))
+        out = self.layer1(out)
+
+        out1 = self.ex1bn1(self.ex1conv1(F.relu(out)))
+        out1 = self.ex1bn2(self.ex1conv2(F.relu(out1)))
+        out1 = self.ex1bn3(self.ex1conv3(F.relu(out1)))
+        out1 = F.avg_pool2d(F.relu(out1), 4)
+        middle1_fea = out1
+        out1 = out1.view(out1.size(0), -1)
+        if self.dropout_exit:
+            out1 = self.exit1_dropout(out1)
+        out1 = self.ex1linear(out1)
+
+        out = self.layer2(out)
+
+        out2 = self.ex2bn1(self.ex2conv1(F.relu(out)))
+        out2 = self.ex2bn2(self.ex2conv2(F.relu(out2)))
+        out2 = F.avg_pool2d(F.relu(out2), 4)
+        middle2_fea = out2
+        out2 = out2.view(out2.size(0), -1)
+        if self.dropout_exit:
+            out2 = self.exit2_dropout(out2)
+        out2 = self.ex2linear(out2)
+
+        out = self.layer3(out)
+
+        out3 = self.ex3bn1(self.ex3conv1(F.relu(out)))
+        out3 = F.avg_pool2d(F.relu(out3), 4)
+        middle3_fea = out3
+        out3 = out3.view(out3.size(0), -1)
+        if self.dropout_exit:
+            out3 = self.exit3_dropout(out3)
+        out3 = self.ex3linear(out3)
+
+        out = self.layer4(out)
+
+        out = F.avg_pool2d(F.relu(out), 4)
+        final_fea = out
+        out = out.view(out.size(0), -1)
+        if self.dropout_exit:
+            out = self.exit_dropout(out)
+        out = self.linear(out)
+        self.intermediary_output_list = (out, out1, out2, out3, final_fea, middle1_fea, middle2_fea, middle3_fea)
+        return [out1, out2, out3, out]
