@@ -20,7 +20,7 @@ def get_res_net_18(ensemble, network_hyperparams):
         return ResNet18EarlyExitLee(**dict_drop(network_hyperparams,"call", "load_model",
             "resnet_type","dropout","dropout_exit", "dropout_p"))
 
-    elif ensemble == "ResNet18MC":
+    elif ensemble == "mc":
         # n_exits, out_dim, dropout, dropout_exit, dropout_p
         return ResNet18MC(**dict_drop(network_hyperparams,"call", "load_model",
             "resnet_type"))
