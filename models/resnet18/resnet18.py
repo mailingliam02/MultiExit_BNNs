@@ -181,3 +181,57 @@ class ResNet18EarlyExitLee(ResNet):
         super().__init__(block=BasicBlock, num_blocks=[2,2,2,2], num_classes=out_dim, *args,  **kwargs)
         self.n_exits = n_exits
         self.out_dim = out_dim
+
+
+class ResNet18Base(ResNet):
+    def __init__(self,n_exits = 1, out_dim = 100, *args,  **kwargs):
+        super().__init__(block=BasicBlock, num_blocks=[2,2,2,2], num_classes=out_dim, *args,  **kwargs)
+        self.n_exits = n_exits
+        self.out_dim = out_dim
+    
+    def forward(self, x):
+        out = self.bn1(self.conv1(x))
+        out = self.layer1(out)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+        out = F.avg_pool2d(F.relu(out), 4)
+        out = out.view(out.size(0), -1)
+        out = self.linear(out)
+        return out
+
+
+class MCDropout(nn.Dropout):
+
+    def forward(self, x):
+        print("its working")
+        return F.dropout(x, self.p, True, self.inplace)
+
+class ResNet18MC(ResNet):
+    def __init__(self,dropout_exit = False, dropout = None, dropout_p = 0.5, n_exits = 1, out_dim = 100, *args,  **kwargs):
+        super().__init__(block=BasicBlock, num_blocks=[2,2,2,2], num_classes=out_dim, *args,  **kwargs)
+        self.n_exits = n_exits
+        self.out_dim = out_dim
+        self.dropout_exit = dropout_exit
+        self.dropout = dropout
+        self.dropout_p = dropout_p
+        layer_list = [self.layer1, self.layer2, self.layer3, self.layer4]
+        if dropout is not None:
+            for i in range(len(layer_list)):
+                layer_list[i].add_module("dropout", MCDropout(self.dropout_p))
+        if self.dropout_exit:
+            self.exit_dropout = MCDropout(self.dropout_p)
+
+    
+    def forward(self, x):
+        out = self.bn1(self.conv1(x))
+        out = self.layer1(out)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+        out = F.avg_pool2d(F.relu(out), 4)
+        out = out.view(out.size(0), -1)
+        if self.dropout_exit:
+            out = self.exit_dropout(out)
+        out = self.linear(out)
+        return out

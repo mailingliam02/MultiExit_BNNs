@@ -1,6 +1,5 @@
 from utils import dict_drop
-from models.resnet18.resnet18_basic import ResNet18, ResNet18MCDrop
-from models.resnet18.resnet18_basic import ResNet18EarlyExitLee
+from models.resnet18.resnet18 import ResNet18EarlyExitLee, ResNet18Base, ResNet18MC
 
 def get_res_net_18(ensemble, network_hyperparams):
     # Network Hyperparams (call = "ResNet18",
@@ -12,11 +11,16 @@ def get_res_net_18(ensemble, network_hyperparams):
             #dropout_p = args.dropout_p,
             #n_exits = 4)
     if ensemble is None:
-        # out_dim
-        return ResNet18(**dict_drop(network_hyperparams,"call", "load_model",
-            "resnet_type","dropout","dropout_exit", "dropout_p","n_exits"))
+        # n_exits, out_dim
+        return ResNet18Base(**dict_drop(network_hyperparams,"call", "load_model",
+            "resnet_type","dropout","dropout_exit", "dropout_p"))
 
     elif ensemble == "early_exit_lee":
         # n_exits, out_dim
         return ResNet18EarlyExitLee(**dict_drop(network_hyperparams,"call", "load_model",
             "resnet_type","dropout","dropout_exit", "dropout_p"))
+
+    elif ensemble == "ResNet18MC":
+        # n_exits, out_dim, dropout, dropout_exit, dropout_p
+        return ResNet18MC(**dict_drop(network_hyperparams,"call", "load_model",
+            "resnet_type"))
