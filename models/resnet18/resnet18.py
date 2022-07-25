@@ -198,13 +198,12 @@ class ResNet18Base(ResNet):
         out = F.avg_pool2d(F.relu(out), 4)
         out = out.view(out.size(0), -1)
         out = self.linear(out)
-        return out
+        return [out]
 
 
 class MCDropout(nn.Dropout):
 
     def forward(self, x):
-        print("its working")
         return F.dropout(x, self.p, True, self.inplace)
 
 class ResNet18MC(ResNet):
@@ -234,4 +233,4 @@ class ResNet18MC(ResNet):
         if self.dropout_exit:
             out = self.exit_dropout(out)
         out = self.linear(out)
-        return out
+        return [out]
