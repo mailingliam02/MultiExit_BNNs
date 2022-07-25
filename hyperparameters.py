@@ -16,7 +16,7 @@ def get_hyperparameters(args):
     # Train and Val Loaders
     loader_hyperparameters = get_loader_hyperparameters(args)
     # Optimizer and Scheduler
-    opt_hyperparameters, sched_hyperparameters, max_norm = get_opt_sched_hyperparameters()
+    opt_hyperparameters, sched_hyperparameters, max_norm = get_opt_sched_hyperparameters(args)
     
     
     hyperparameters = dict(
@@ -193,7 +193,7 @@ def get_loss_hyperparameters(num_exits, model_type, args, loss_type = "distillat
     val_loss_type = "acc"
     return loss, val_loss_type
 
-def get_opt_sched_hyperparameters():
+def get_opt_sched_hyperparameters(args):
     cf_opt = dict(          # optimization method
     call = 'SGD',
     lr = 0.5, # Note this is from Paper 9 (Paper 10 used 0.1)
@@ -209,7 +209,7 @@ def get_opt_sched_hyperparameters():
     # milestones = [150, 225],
     #gamma = 0.1
     )
-    max_norm = 2
+    max_norm = args.grad_clipping
     return cf_opt, cf_scheduler, max_norm
 
 def get_loader_hyperparameters(args):
