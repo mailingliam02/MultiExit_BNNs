@@ -1,6 +1,7 @@
 import torch
 from models.msdnet import MsdNet
 from models.resnet18 import get_res_net_20, get_res_net_18
+from models.vgg import get_vgg_19
 
 def dict_drop(dic, *keys):
     new_dic = dic.copy()
@@ -20,7 +21,9 @@ def get_network(network_hyperparams):
     elif network_hyperparams["call"] == "ResNet18":
         model = get_res_net_18(network_hyperparams["resnet_type"], dict_drop(network_hyperparams, "call", "load_model","resnet_type"))
     elif network_hyperparams["call"] == "ResNet20":
-        model = get_res_net_20(network_hyperparams["resnet_type"], dict_drop(network_hyperparams, "call", "load_model","resnet_type"))    
+        model = get_res_net_20(network_hyperparams["resnet_type"], dict_drop(network_hyperparams, "call", "load_model","resnet_type"))
+    elif network_hyperparams["call"] == "VGG19":
+        model = get_res_net_18(network_hyperparams["resnet_type"], dict_drop(network_hyperparams, "call", "load_model","resnet_type"))    
     else:
         raise AttributeError
     return model
