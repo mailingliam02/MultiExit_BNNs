@@ -15,7 +15,7 @@ def get_res_net_18(ensemble, network_hyperparams):
         return ResNet18Base(**dict_drop(network_hyperparams,"call", "load_model",
             "resnet_type","dropout","dropout_exit", "dropout_p"))
 
-    elif ensemble == "early_exit_lee":
+    elif ensemble == "early_exit":
         # n_exits, out_dim
         return ResNet18EarlyExitLee(**dict_drop(network_hyperparams,"call", "load_model",
             "resnet_type","dropout","dropout_exit", "dropout_p"))

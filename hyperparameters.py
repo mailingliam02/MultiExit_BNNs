@@ -82,10 +82,10 @@ def get_network_hyperparameters(model_type, args):
         elif args.dropout_exit or args.dropout_type is not None:
             hyperparams["resnet_type"] = "mc_early_exit"
 
-    elif model_type == "resnet18":
+    elif model_type == "resnet18" or model_type == "vgg19":
         hyperparams = dict(
             call = "ResNet18",
-            resnet_type = "early_exit_lee",
+            resnet_type = "early_exit",
             load_model = None,
             out_dim = 100,
             dropout = args.dropout_type,
@@ -93,6 +93,10 @@ def get_network_hyperparameters(model_type, args):
             dropout_p = args.dropout_p,
             n_exits = 4 # Doesn't affect network, but does effect loss!!!
         )
+        if model_type == "vgg19":
+            hyperparams["call"] = "VGG19"
+            hyperparams["n_exits"] = 5
+            
         if args.single_exit and (args.dropout_exit or args.dropout_type is not None):
             hyperparams["resnet_type"] = "mc"
             hyperparams["n_exits"] = 1            
@@ -140,7 +144,7 @@ def get_loss_hyperparameters(num_exits, model_type, args, loss_type = "distillat
                 n_exits = num_exits,
                 acc_tops = [1, 5],
             )
-    elif model_type == "resnet18":
+    elif model_type == "resnet18" or model_type == "vgg19":
         if not args.single_exit:
             loss = dict(
                 call = "ExitEnsembleDistillation",
@@ -219,7 +223,7 @@ def get_loader_hyperparameters(args):
         augment = True,
         val_split = 0.1,
         )
-    if args.backbone == "resnet18" or args.backbone == "resnet20":
+    if args.backbone == "resnet18" or args.backbone == "resnet20" or args.backbone == "vgg19":
         hyperparameters["batch_size"] = (128,128,250)
     return hyperparameters
 
