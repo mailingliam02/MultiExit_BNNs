@@ -103,15 +103,16 @@ class ExitEnsembleDistillation(_MultiExitAccuracy):
             target = y
             with torch.no_grad():
                 _ = model(x)
-                output, middle_output1, middle_output2, middle_output3, \
-                final_fea, middle1_fea, middle2_fea, middle3_fea = model.intermediary_output_list
+                output, middle_outputs, \
+                final_fea, middle_feas = model.intermediary_output_list
                 loss = self.criterion(output, target)
                 prec1 = self.accuracy(output.data, target, topk=(1,))
-                middle1_prec1 = self.accuracy(middle_output1.data, target, topk=(1,))
-                middle2_prec1 = self.accuracy(middle_output2.data, target, topk=(1,))
-                middle3_prec1 = self.accuracy(middle_output3.data, target, topk=(1,))
+                avg_acc_batch = prec1[0]
+                for middle_output in middle_outputs:
+                    avg_acc_batch += self.accuracy(middle_output.data, target, topk=(1,))[0]
+                avg_acc_batch /= (len(middle_outputs)+1)
                 top1_acc += prec1[0]
-                avg_acc += (prec1[0]+middle1_prec1[0]+middle2_prec1[0]+middle3_prec1[0])/4
+                avg_acc += avg_acc_batch
         top1_acc /= len(val_loader)*100
         avg_acc /= len(val_loader)*100
         model.train()
