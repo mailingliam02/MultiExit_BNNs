@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 
 def get_vgg_19(ensemble, network_hyperparams):
-   if ensemble is None:
+    if ensemble is None:
         # n_exits, out_dim
         return VGG19(**dict_drop(network_hyperparams,"call", "load_model",
             "resnet_type","dropout","dropout_exit", "dropout_p"))
