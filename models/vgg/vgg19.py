@@ -54,7 +54,7 @@ class VGG(nn.Module):
         output = output.view(output.size()[0], -1)
         output = self.classifier(output)
 
-        return output
+        return [output]
 
 def make_layers(cfg, batch_norm=False):
     blocks = []
