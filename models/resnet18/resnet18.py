@@ -173,7 +173,7 @@ class ResNet(nn.Module):
         final_fea = out
         out = out.view(out.size(0), -1)
         out = self.linear(out)
-        self.intermediary_output_list = (out, out1, out2, out3, final_fea, middle1_fea, middle2_fea, middle3_fea)
+        self.intermediary_output_list = (out, [out1, out2, out3], final_fea, [middle1_fea, middle2_fea, middle3_fea])
         return [out1, out2, out3, out]
 
 class ResNet18EarlyExitLee(ResNet):
@@ -296,5 +296,5 @@ class ResNet18MCEarlyExitLee(ResNet):
         if self.dropout_exit:
             out = self.exit_dropout(out)
         out = self.linear(out)
-        self.intermediary_output_list = (out, out1, out2, out3, final_fea, middle1_fea, middle2_fea, middle3_fea)
+        self.intermediary_output_list = (out, [out1, out2, out3], final_fea, [middle1_fea, middle2_fea, middle3_fea])
         return [out1, out2, out3, out]

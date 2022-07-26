@@ -12,21 +12,19 @@ class ExitEnsembleDistillation(_MultiExitAccuracy):
         self.use_feature_dist = use_feature_dist
         self.temperature = temperature
 
-
     def __call__(self, net, X, y):
         _ = net(X)
-        output, middle_output1, middle_output2, middle_output3, \
-            final_fea, middle1_fea, middle2_fea, middle3_fea = net.intermediary_output_list
+        output, middle_outputs, \
+            final_fea, middle_feas = net.intermediary_output_list
         target = y
         loss = self.criterion(output, target)
-        middle1_loss = self.criterion(middle_output1, target)
-        middle2_loss = self.criterion(middle_output2, target)
-        middle3_loss = self.criterion(middle_output3, target)
-        L_C = loss + middle1_loss + middle2_loss + middle3_loss
+        for middle_output in middle_outputs:
+            loss += self.criterion(middle_output, target)
+        L_C = loss
 
         if self.use_EED:
-            target_output = (middle_output1/4 + middle_output2/4 + middle_output3/4 + output/4).detach()
-            target_fea = (middle1_fea/4 + middle2_fea/4 + middle3_fea/4 + final_fea/4).detach()
+            target_output = ((sum(middle_outputs)+output)/(len(middle_outputs)+1)).detach()
+            target_fea = ((sum(middle_feas)+output)/(len(middle_feas)+1)).detach()
         else:
             target_output = output.detach()
             target_fea = final_fea.detach()
@@ -34,37 +32,37 @@ class ExitEnsembleDistillation(_MultiExitAccuracy):
         if self.loss_output == 'KL':
             temp = target_output / self.temperature
             temp = torch.softmax(temp, dim=1)
-            loss1by4 = self.kd_loss_function(middle_output1, temp) * (self.temperature**2)
-            loss2by4 = self.kd_loss_function(middle_output2, temp) * (self.temperature**2)
-            loss3by4 = self.kd_loss_function(middle_output3, temp) * (self.temperature**2)
-            L_O = 0.1 * (loss1by4 + loss2by4 + loss3by4)
+            lossxbyn = 0
+            for middle_output in middle_outputs:
+                lossxbyn += self.kd_loss_function(middle_output, temp) * (self.temperature**2)
+            L_O = 0.1 * (lossxbyn)
             if self.use_EED:
                 loss4by4 = self.kd_loss_function(output, temp) * (self.temperature**2)
                 L_O += 0.1 * loss4by4
 
         elif self.loss_output == 'MSE':
             MSEloss = nn.MSELoss(reduction='mean').cuda()
-            loss_mse_1 = MSEloss(middle_output1, target_output)
-            loss_mse_2 = MSEloss(middle_output2, target_output)
-            loss_mse_3 = MSEloss(middle_output3, target_output)
-            L_O = loss_mse_1 + loss_mse_2 + loss_mse_3
+            loss_mse_n = 0
+            for middle_output in middle_outputs:
+                loss_mse_n += MSEloss(middle_output, target_output)
+            L_O = loss_mse_n
             if self.use_EED:
                 loss_mse_4 = MSEloss(output, target_output)
                 L_O += loss_mse_4
         total_loss = L_C + L_O
 
         if self.use_feature_dist:
-            feature_loss_1 = self.feature_loss_function(middle1_fea, target_fea)
-            feature_loss_2 = self.feature_loss_function(middle2_fea, target_fea)
-            feature_loss_3 = self.feature_loss_function(middle3_fea, target_fea)
-            L_F = feature_loss_1 + feature_loss_2 + feature_loss_3
+            feature_loss_n = 0
+            for middle_fea in middle_feas:
+                feature_loss_n += self.feature_loss_function(middle_fea, target_fea)
+            L_F = feature_loss_n
             if self.use_EED:
                 feature_loss_4 = self.feature_loss_function(final_fea, target_fea)
                 L_F += feature_loss_4
             total_loss += L_F
 
         return total_loss
-    
+
     def kd_loss_function(self, output, target_output):
         """Compute kd loss"""
         """
