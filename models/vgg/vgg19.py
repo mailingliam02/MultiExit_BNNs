@@ -98,7 +98,7 @@ class VGG19MC(VGG19):
         self.dropout_exit = dropout_exit
 
         if self.dropout is not None:
-            for block in range(len(self.non_sequentialized_blocks))
+            for block in range(len(self.non_sequentialized_blocks)):
                 if self.dropout == "block":
                     dropout_layer = MCDropout(self.dropout_p)
                     self.non_sequentialized_blocks[block].append(dropout_layer)
@@ -212,7 +212,7 @@ class VGG19MCEarlyExit(VGG19EarlyExit):
         self.dropout_exit = dropout_exit
 
         if self.dropout is not None:
-            for block in range(len(self.non_sequentialized_blocks))
+            for block in range(len(self.non_sequentialized_blocks)):
                 if self.dropout == "block":
                     dropout_layer = MCDropout(self.dropout_p)
                     self.non_sequentialized_blocks[block].append(dropout_layer)
