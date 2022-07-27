@@ -1,5 +1,5 @@
 # Original code: https://github.com/pytorch/vision/blob/master/torchvision/models/resnet.py
-
+import torch
 import torch.nn as nn
 import math
 import numpy as np
@@ -121,6 +121,9 @@ class ResNet(nn.Module):
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
+            elif isinstance(m, nn.Linear):
+                torch.nn.init.xavier_uniform(m.weight)
+                m.bias.data.fill_(0.0)
 
     def _make_layer(self, block, planes, blocks, stride=1):
         downsample = None
