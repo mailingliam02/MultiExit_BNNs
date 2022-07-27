@@ -153,7 +153,7 @@ class VGG19EarlyExit(VGG19):
         ex1relu1 = nn.ReLU(inplace=True)
         ex1relu2 = nn.ReLU(inplace=True)
         ex1relu3 = nn.ReLU(inplace=True)
-        ex1featureextractor_list = nn.ModuleList(ex1conv1,ex1bn1,ex1relu1,ex1conv2,ex1bn2,ex1relu2,ex1conv3,ex1bn3,ex1relu3)
+        ex1featureextractor_list = nn.ModuleList(modules = [ex1conv1,ex1bn1,ex1relu1,ex1conv2,ex1bn2,ex1relu2,ex1conv3,ex1bn3,ex1relu3])
         self.ex1featureextractor = nn.Sequential(*ex1featureextractor_list)
         self.ex1linear = nn.Linear(512, out_dim)
 
@@ -163,7 +163,7 @@ class VGG19EarlyExit(VGG19):
         ex2bn2 = nn.BatchNorm2d(512)
         ex2relu1 = nn.ReLU(inplace=True)
         ex2relu2 = nn.ReLU(inplace=True)
-        ex2featureextractor_list = nn.ModuleList(ex2conv1,ex2bn1,ex2relu1,ex2conv2,ex2bn2,ex2relu2)
+        ex2featureextractor_list = nn.ModuleList(modules = [ex2conv1,ex2bn1,ex2relu1,ex2conv2,ex2bn2,ex2relu2])
         self.ex2featureextractor = nn.Sequential(*ex2featureextractor_list)
         self.ex2linear = nn.Linear(512, out_dim)
 
@@ -171,7 +171,7 @@ class VGG19EarlyExit(VGG19):
         ex3conv1 = nn.Conv2d(256, 512, kernel_size=3, stride=2, padding=1, bias=False)
         ex3bn1 = nn.BatchNorm2d(512)
         ex3relu1 = nn.ReLU(inplace=True)
-        ex3featureextractor_list = nn.ModuleList(ex3conv1,ex3bn1,ex3relu1)
+        ex3featureextractor_list = nn.ModuleList(modules = [ex3conv1,ex3bn1,ex3relu1])
         self.ex3featureextractor = nn.Sequential(*ex3featureextractor_list)
         self.ex3linear = nn.Linear(512, out_dim)
 
