@@ -213,6 +213,41 @@ def get_opt_sched_hyperparameters(args):
     # milestones = [150, 225],
     #gamma = 0.1
     )
+    
+    if args.backbone == "vgg19":
+        cf_opt = dict(          # optimization method
+        call = 'SGD',
+        lr = 0.01, # Note this is from Paper 9 (Paper 10 used 0.1)
+        momentum = 0.9,
+        weight_decay = 5e-4,
+        nesterov = True,
+        )  
+        cf_scheduler = dict(   # learning rate schedule
+        call = "ReduceLROnPlateau",
+        factor = 0.1,
+        patience = 10,
+        # call = 'MultiStepLR',
+        # milestones = [150, 225],
+        #gamma = 0.1
+        ) 
+
+    if args.backbone == "resnet18":
+        cf_opt = dict(          # optimization method
+        call = 'SGD',
+        lr = 0.01, # Note this is from Paper 9 (Paper 10 used 0.1)
+        momentum = 0.9,
+        weight_decay = 1e-4,
+        nesterov = True,
+        )  
+        cf_scheduler = dict(   # learning rate schedule
+        call = "ReduceLROnPlateau",
+        factor = 0.1,
+        patience = 10,
+        # call = 'MultiStepLR',
+        # milestones = [150, 225],
+        #gamma = 0.1
+        ) 
+
     max_norm = args.grad_clipping
     return cf_opt, cf_scheduler, max_norm
 
