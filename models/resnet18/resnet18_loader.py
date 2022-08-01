@@ -10,12 +10,12 @@ def get_res_net_18(ensemble, network_hyperparams):
             #dropout_exit = args.dropout_exit,
             #dropout_p = args.dropout_p,
             #n_exits = 4)
-    if ensemble is None:
-        # n_exits, out_dim
-        return ResNet18Base(**dict_drop(network_hyperparams,"call", "load_model",
-            "resnet_type","dropout","dropout_exit", "dropout_p"))
+    # if ensemble is None:
+    #     # n_exits, out_dim
+    #     return ResNet18Base(**dict_drop(network_hyperparams,"call", "load_model",
+    #         "resnet_type","dropout","dropout_exit", "dropout_p"))
 
-    elif ensemble == "early_exit":
+    if ensemble == "early_exit" or ensemble is None:
         # n_exits, out_dim
         return ResNet18EarlyExitLee(**dict_drop(network_hyperparams,"call", "load_model",
             "resnet_type","dropout","dropout_exit", "dropout_p"))

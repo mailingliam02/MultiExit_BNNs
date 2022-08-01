@@ -17,10 +17,11 @@ class ExitEnsembleDistillation(_MultiExitAccuracy):
         output, middle_outputs, \
             final_fea, middle_feas = net.intermediary_output_list
         target = y
-        loss = self.criterion(output, target)
+        final_output_loss = self.criterion(output, target)
+        loss = 0
         for middle_output in middle_outputs:
             loss += self.criterion(middle_output, target)
-        L_C = loss
+        L_C = loss + final_output_loss
 
         if self.use_EED:
             target_output = ((sum(middle_outputs)+output)/(len(middle_outputs)+1)).detach()
@@ -60,8 +61,10 @@ class ExitEnsembleDistillation(_MultiExitAccuracy):
                 feature_loss_4 = self.feature_loss_function(final_fea, target_fea)
                 L_F += feature_loss_4
             total_loss += L_F
-
-        return total_loss
+        if net.n_exits == 1:
+            return loss
+        else:
+            return total_loss
 
     def kd_loss_function(self, output, target_output):
         """Compute kd loss"""

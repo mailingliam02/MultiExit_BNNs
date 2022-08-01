@@ -12,12 +12,12 @@ import torch.nn.functional as F
 from utils import dict_drop
 
 def get_vgg_19(ensemble, network_hyperparams):
-    if ensemble is None:
-        # n_exits, out_dim
-        return VGG19(**dict_drop(network_hyperparams,"call", "load_model",
-            "resnet_type","dropout","dropout_exit", "dropout_p"))
+    # if ensemble is None:
+    #     # n_exits, out_dim
+    #     return VGG19(**dict_drop(network_hyperparams,"call", "load_model",
+    #         "resnet_type","dropout","dropout_exit", "dropout_p"))
 
-    elif ensemble == "early_exit":
+    if ensemble == "early_exit" or ensemble is None:
         # n_exits, out_dim
         return VGG19EarlyExit(**dict_drop(network_hyperparams,"call", "load_model",
             "resnet_type","dropout","dropout_exit", "dropout_p"))
