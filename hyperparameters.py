@@ -217,38 +217,42 @@ def get_opt_sched_hyperparameters(args):
     if args.backbone == "vgg19":
         cf_opt = dict(          # optimization method
         call = 'SGD',
-        lr = 0.01, # Note this is from Paper 9 (Paper 10 used 0.1)
+        lr = 0.1, # Note this is from Paper 9 (Paper 10 used 0.1)
         momentum = 0.9,
         weight_decay = 5e-4,
-        nesterov = True,
         )  
-        cf_scheduler = dict(   # learning rate schedule
-        call = "ReduceLROnPlateau",
-        factor = 0.1,
-        patience = 10,
-        # call = 'MultiStepLR',
-        # milestones = [150, 225],
-        #gamma = 0.1
-        ) 
+        if args.reducelr_on_plateau:
+            cf_scheduler = dict(   # learning rate schedule
+            call = "ReduceLROnPlateau",
+            factor = 0.1,
+            patience = 10,)
+        else:
+            cf_scheduler = dict(   # learning rate schedule
+            call = "CosineAnnealingLR",
+            T_max = 200,)
 
     if args.backbone == "resnet18":
         cf_opt = dict(          # optimization method
         call = 'SGD',
-        lr = 0.01, # Note this is from Paper 9 (Paper 10 used 0.1)
+        lr = 0.1, # Note this is from Paper 9 (Paper 10 used 0.1)
         momentum = 0.9,
-        weight_decay = 1e-4,
+        weight_decay = 5e-4,
         nesterov = True,
         )  
-        cf_scheduler = dict(   # learning rate schedule
-        call = "ReduceLROnPlateau",
-        factor = 0.1,
-        patience = 10,
-        # call = 'MultiStepLR',
-        # milestones = [150, 225],
-        #gamma = 0.1
-        ) 
+        if args.reducelr_on_plateau:
+            cf_scheduler = dict(   # learning rate schedule
+            call = "ReduceLROnPlateau",
+            factor = 0.1,
+            patience = 10,)
+        else:
+            cf_scheduler = dict(   # learning rate schedule
+            call = 'MultiStepLR',
+            milestones = [75,130,180],
+            gamma = 0.1)
 
     max_norm = args.grad_clipping
+    if args.grad_clipping == 0:
+        max_norm = None
     return cf_opt, cf_scheduler, max_norm
 
 def get_loader_hyperparameters(args):
@@ -256,7 +260,7 @@ def get_loader_hyperparameters(args):
         batch_size = (64,64,250), #(train, val, test) 
         # train and val batch sizes should be the same for plotting purposes
         augment = True,
-        val_split = 0.1,
+        val_split = args.val_split,
         )
     if args.backbone == "resnet18" or args.backbone == "resnet20" or args.backbone == "vgg19":
         hyperparameters["batch_size"] = (128,128,250)

@@ -27,7 +27,11 @@ parser.add_argument('--single_exit', type=bool, default=False)
 parser.add_argument('--backbone', type=str, default = "msdnet")
 parser.add_argument('--grad_clipping', type=float, default = 2)
 parser.add_argument('--gpu', type=int,default=0)
+parser.add_argument('--val_split', type=float, default = 0.1)
+parser.add_argument('--reducelr_on_plateau', type=bool, default = False)
 args = parser.parse_args()
+#https://stackoverflow.com/questions/44561722/why-in-argparse-a-true-is-always-true
+
 # Specify Hyperparameters (maybe add command line compatibility?)
 hyperparameters = get_hyperparameters(args)
 # Load any Utilities (like a timer, logging...)
