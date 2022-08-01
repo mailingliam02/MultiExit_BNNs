@@ -1,4 +1,5 @@
 import torch
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 from to_train.train_utils import get_device, validate_model, tab_str, predict, plot_loss
 
 # From https://pytorch.org/tutorials/beginner/introyt/trainingyt.html#the-training-loop
@@ -19,7 +20,8 @@ def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = t
         loss = loss_fn(model,x, y)
         loss.backward()
         # Needed for training (Need to look into this more!)
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
+        if max_norm is not None:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
         # Adjust learning weights
         optimizer.step()
 
@@ -33,7 +35,7 @@ def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = t
     return last_loss
 
 # From https://gitlab.doc.ic.ac.uk/lab2122_spring/DL_CW_1_lrc121/-/blob/master/dl_cw_1.ipynb
-def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_id, max_norm = 1, patience = 10, epochs=1, 
+def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_id, max_norm = 1, patience = 50, epochs=1, 
                 gpu = -1, val_loss_type = "acc"):
                             # Change to str as opposed to bool
     """
@@ -69,7 +71,10 @@ def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_i
             counter += 1
             if counter > patience:
                 break
-        scheduler.step(val_loss)
+        if isinstance(scheduler, ReduceLROnPlateau):
+            scheduler.step(val_loss)
+        else:
+            scheduler.step()
     plot_loss(all_train_losses,all_val_losses, experiment_id)
     return model
 
