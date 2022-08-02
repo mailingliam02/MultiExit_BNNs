@@ -125,14 +125,18 @@ class VGG19MC(VGG19):
             self.blocks = nn.Sequential(*self.non_sequentialized_blocks)
 
         if self.dropout_exit:
-            for layer in range(len(self.non_sequentialized_classifier)):
-                if isinstance(self.non_sequentialized_classifier[layer], nn.Dropout):
-                    dropout_layer = MCDropout(self.dropout_p)
-                    self.non_sequentialized_classifier[layer] = dropout_layer
-            # Overwrite classifier from super class
-            self.classifier = nn.Sequential(*self.non_sequentialized_classifier)
+            self.classifier = nn.Sequential(MCDropout(self.dropout_p),self.classifier)
         
         self.init_weights()
+
+    def forward(self, x):
+        output = x
+        for block in self.blocks:
+            output = block(output)
+        output = output.view(output.size()[0], -1)
+        output = self.classifier(output)
+        self.intermediary_output_list = (output, [], 0, [])
+        return [output]
 
 class VGG19EarlyExit(VGG19):
     def __init__(self,n_exits = 4, out_dim = 100, *args,  **kwargs):
@@ -245,12 +249,8 @@ class VGG19MCEarlyExit(VGG19EarlyExit):
             self.ex2linear = nn.Sequential(MCDropout(self.dropout_p), self.ex2linear)
             self.ex3linear = nn.Sequential(MCDropout(self.dropout_p), self.ex3linear)
             self.ex4linear = nn.Sequential(MCDropout(self.dropout_p), self.ex4linear)
-            for layer in range(len(self.non_sequentialized_classifier)):
-                if isinstance(self.non_sequentialized_classifier[layer], nn.Dropout):
-                    dropout_layer = MCDropout(self.dropout_p)
-                    self.non_sequentialized_classifier[layer] = dropout_layer
             # Overwrite classifier from super class
-            self.classifier = nn.Sequential(*self.non_sequentialized_classifier)
+            self.classifier = nn.Sequential(MCDropout(self.dropout_p),self.classifier)
         
         self.init_weights()
 

@@ -6,6 +6,8 @@ import types
 import numpy as np
 from torch import nn
 from KDEpy import FFTKDE
+from models.vgg.vgg19 import VGG19EarlyExit
+from models.resnet18.resnet18 import ResNet18EarlyExitLee
 from evaluate import evaluate
 from hyperparameters import get_hyperparameters
 from to_train.train_utils import get_device
@@ -15,10 +17,10 @@ import numpy as np
 import torch.nn.parallel
 
 class ResourceLoader():
-    def __init__(self):
+    def __init__(self, gpu):
         # Specify Hyperparameters (maybe add command line compatibility?)
-        self.hyperparameters = get_hyperparameters(self.fake_args())
-        #hyperparameters["loaders"]["batch_size"] = (1,1,1)
+        self.hyperparameters = get_hyperparameters(self.fake_args(gpu))
+        #self.hyperparameters["loaders"]["batch_size"] = (1,1,1)
         self.train_loader, self.val_loader, self.test_loader = datasets.get_dataloader(self.hyperparameters["loaders"])
         # Evaluate the Network on Test
         self.test_loss_fn = to_train.get_loss_function(self.hyperparameters["test_loss"])
@@ -45,10 +47,10 @@ class ResourceLoader():
     def get_loader(self):
         return self.test_loader, self.val_loader
     
-    def fake_args(self):
+    def fake_args(self, gpu):
         args = types.SimpleNamespace(dropout_exit = False, dropout_p = 0.5,
             dropout_type = None, n_epochs = 300, patience = 50, backbone = "msdnet", 
-            single_exit = False)
+            single_exit = False, grad_clipping = 0, gpu = gpu, val_split = 0.1, reducelr_on_plateau = True)
         return args
     
 
@@ -529,12 +531,20 @@ class UncertaintyQuantification():
 class FullAnalysis():
     def __init__(self, model, test_loader, gpu=0, mc_dropout = False, mc_passes = 10):
         self.model = model
+        self.update_model_exits()
         self.loader = test_loader
         self.gpu = gpu
         self.mc_dropout = mc_dropout
         self.mc_passes = mc_passes
         self.sdn_get_detailed_results()
 
+    def update_model_exits(self):
+        if self.model.n_exits == 1 and isinstance(self.model, VGG19EarlyExit):
+            self.model.n_exits = 5
+        elif self.model.n_exits == 1 and isinstance(self.model, ResNet18EarlyExitLee):
+            self.model.n_exits = 4
+        return None
+            
     def multipass_experiment(self):
         passes = list(range(1,20))
         acc_list = []
@@ -985,12 +995,13 @@ if __name__ == "__main__":
     parser.add_argument('--testing', type=bool, default = False)
     parser.add_argument('--full_and_save', type=bool, default = False)
     parser.add_argument('--multiple_pass', type=bool, default = False)
+    parser.add_argument('--gpu', type=int, default = 0)
     args = parser.parse_args()
-    resources = ResourceLoader()
+    resources = ResourceLoader(args.gpu)
     test_loader, val_loader = resources.get_loader()
     model = resources.get_model(args.model_num, model_type = "val")
     if args.full_and_save:
-        full_analyzer = FullAnalysis(model, test_loader, gpu = 0, 
+        full_analyzer = FullAnalysis(model, test_loader, gpu = args.gpu, 
             mc_dropout = args.dropout, mc_passes = args.num_passes)
         full_analyzer.all_experiments(args.model_num)
         full_analyzer.save_validation(args.model_num, val_loader)

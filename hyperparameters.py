@@ -145,35 +145,16 @@ def get_loss_hyperparameters(num_exits, model_type, args, loss_type = "distillat
                 acc_tops = [1, 5],
             )
     elif model_type == "resnet18" or model_type == "vgg19":
-        if not args.single_exit:
-            loss = dict(
-                call = "ExitEnsembleDistillation",
-                n_exits = num_exits,
-                acc_tops = [1,5],
-                use_EED = True, 
-                loss_output = "MSE", 
-                use_feature_dist = False, # beta = 0
-                temperature = 3 # default value from paper
-            )
-        # Add standard loss function stuff here
-        elif loss_type == "distillation_annealing" and not args.single_exit:
-            loss = dict(         # distillation-based training with temperature
-                                # annealing
-            call = 'DistillationBasedLoss',
+        loss = dict(
+            call = "ExitEnsembleDistillation",
             n_exits = num_exits,
-            acc_tops = [1, 5],
-            
-            C = 0.5, # Confidence Limit (?)
-            maxprob = 0.5, 
-            global_scale = 2.0 * 5/num_exits, # Not mentioned in paper
-            # Temperature multiplier is 1.05 by default
-            )
-        elif loss_type == "classification" or args.single_exit:
-            loss = dict(       # train with classification loss only
-                call = 'ClassificationOnlyLoss',
-                n_exits = num_exits,
-                acc_tops = [1, 5],
-            )
+            acc_tops = [1,5],
+            use_EED = True, 
+            loss_output = "MSE", 
+            use_feature_dist = False, # beta = 0
+            temperature = 3 # default value from paper
+        )
+        
     elif model_type == "resnet20":
         # Add standard loss function stuff here
         if loss_type == "distillation_annealing" and not args.single_exit:
