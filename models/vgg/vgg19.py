@@ -109,6 +109,7 @@ class VGG19MC(VGG19):
         self.dropout_exit = dropout_exit
 
         if self.dropout is not None:
+            self.blocks = nn.ModuleList()
             for block in range(len(self.non_sequentialized_blocks)):
                 if self.dropout == "block":
                     dropout_layer = MCDropout(self.dropout_p)
@@ -122,8 +123,8 @@ class VGG19MC(VGG19):
                         new_block.append(dropout_layer)
                     self.non_sequentialized_blocks[block] = new_block
             # Overwrite blocks from super class
-            self.blocks = nn.Sequential(*self.non_sequentialized_blocks)
-
+            for block in range(len(self.non_sequentialized_blocks)):
+                self.blocks[block] = nn.Sequential(*self.non_sequentialized_blocks[block])
         if self.dropout_exit:
             self.classifier = nn.Sequential(MCDropout(self.dropout_p),self.classifier)
         
@@ -241,7 +242,8 @@ class VGG19MCEarlyExit(VGG19EarlyExit):
                         new_block.append(MCDropout(self.dropout_p))
                     self.non_sequentialized_blocks[block] = new_block
             # Overwrite blocks from super class
-            self.blocks = nn.Sequential(*self.non_sequentialized_blocks)
+            for block in range(len(self.non_sequentialized_blocks)):
+                self.blocks[block] = nn.Sequential(*self.non_sequentialized_blocks[block])
 
         if self.dropout_exit:
             self.ex1linear = nn.Sequential(MCDropout(self.dropout_p), self.ex1linear)
