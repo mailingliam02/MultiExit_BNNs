@@ -121,10 +121,7 @@ class ResNet(nn.Module):
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
-            elif isinstance(m, nn.Linear):
-                torch.nn.init.xavier_uniform(m.weight)
-                m.bias.data.fill_(0.0)
-
+                
     def _make_layer(self, block, planes, blocks, stride=1):
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
@@ -218,9 +215,13 @@ class ResNet18MC(ResNet):
         self.dropout = dropout
         self.dropout_p = dropout_p
         layer_list = [self.layer1, self.layer2, self.layer3, self.layer4]
-        if dropout is not None:
+        if dropout == "block":
             for i in range(len(layer_list)):
                 layer_list[i].add_module("dropout", MCDropout(self.dropout_p))
+        elif dropout == "layer":
+            for block in range(len(layer_list)):
+                for layer in range(len(layer_list[block])):
+                    layer_list[block][layer].add_module("dropout", MCDropout(self.dropout_p))
         if self.dropout_exit:
             self.exit_dropout = MCDropout(self.dropout_p)
 
@@ -236,6 +237,7 @@ class ResNet18MC(ResNet):
         if self.dropout_exit:
             out = self.exit_dropout(out)
         out = self.linear(out)
+        self.intermediary_output_list = (out, [], 0, [])
         return [out]
 
 class ResNet18MCEarlyExitLee(ResNet):
