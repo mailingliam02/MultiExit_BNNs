@@ -236,10 +236,9 @@ class VGG19MCEarlyExit(VGG19EarlyExit):
                 elif self.dropout == "layer":
                     new_block = nn.ModuleList()
                     # Can this be the same object?
-                    dropout_layer = MCDropout(self.dropout_p)
                     for layer in self.non_sequentialized_blocks[block]:
                         new_block.append(layer)
-                        new_block.append(dropout_layer)
+                        new_block.append(MCDropout(self.dropout_p))
                     self.non_sequentialized_blocks[block] = new_block
             # Overwrite blocks from super class
             self.blocks = nn.Sequential(*self.non_sequentialized_blocks)
