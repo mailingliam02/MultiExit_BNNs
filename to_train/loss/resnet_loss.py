@@ -25,10 +25,12 @@ class ExitEnsembleDistillation(_MultiExitAccuracy):
 
         if self.use_EED:
             target_output = ((sum(middle_outputs)+output)/(len(middle_outputs)+1)).detach()
-            #target_fea = ((sum(middle_feas)+output)/(len(middle_feas)+1)).detach()
+            if self.use_feature_dist:
+                target_fea = ((sum(middle_feas)+output)/(len(middle_feas)+1)).detach()
         else:
             target_output = output.detach()
-            #target_fea = final_fea.detach()
+            if self.use_feature_dist:
+                target_fea = final_fea.detach()
 
         if self.loss_output == 'KL':
             temp = target_output / self.temperature
@@ -52,15 +54,15 @@ class ExitEnsembleDistillation(_MultiExitAccuracy):
                 L_O += loss_mse_4
         total_loss = L_C + L_O
 
-        # if self.use_feature_dist:
-        #     feature_loss_n = 0
-        #     for middle_fea in middle_feas:
-        #         feature_loss_n += self.feature_loss_function(middle_fea, target_fea)
-        #     L_F = feature_loss_n
-        #     if self.use_EED:
-        #         feature_loss_4 = self.feature_loss_function(final_fea, target_fea)
-        #         L_F += feature_loss_4
-        #     total_loss += L_F
+        if self.use_feature_dist:
+            feature_loss_n = 0
+            for middle_fea in middle_feas:
+                feature_loss_n += self.feature_loss_function(middle_fea, target_fea)
+            L_F = feature_loss_n
+            if self.use_EED:
+                feature_loss_4 = self.feature_loss_function(final_fea, target_fea)
+                L_F += feature_loss_4
+            total_loss += L_F
 
         if net.n_exits == 1:
             return final_output_loss
