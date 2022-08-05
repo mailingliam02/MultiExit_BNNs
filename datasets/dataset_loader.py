@@ -3,10 +3,12 @@ import torchvision
 import os
 import torch
 import random
+import PIL
 import numpy as np
 from torchvision import datasets
 from torchvision import transforms
 from torch.utils.data.sampler import SubsetRandomSampler
+from datasets.chestx import CustomChestXDataset
 
 def get_dataloader(hyperparameters, random_seed = None):
     if random_seed is None:
@@ -27,7 +29,10 @@ class DatasetLoader:
         self.augment = augment
         self.valid_size = valid_split
         self.random_seed = random_seed
-        self.data_dir = "./data/"+self.dataset_name
+        self.data_dir = "./MultiExit_BNNs/data/"+self.dataset_name
+        self.size = 32
+        if dataset_name == "imagenet" or dataset_name == "chestx":
+            self.size = 224
         self._get_transforms()
         self._get_dataset()
         if self._sampler_needed():
@@ -36,7 +41,7 @@ class DatasetLoader:
             self.train_sampler = None
 
     def _sampler_needed(self):
-        datasets_without_val = ["cifar10","cifar100","imagenet"]
+        datasets_without_val = ["cifar10","cifar100","imagenet","chestx"]
         if self.dataset_name in datasets_without_val:
             self.shuffle = False
             return True
@@ -51,7 +56,12 @@ class DatasetLoader:
         elif self.dataset_name == "cifar100":
             self.mean=[0.5071, 0.4865, 0.4409]
             self.std=[0.2673, 0.2564, 0.2762]
-        
+        elif self.dataset_name == "chestx":
+            # From here: https://github.com/arnoweng/CheXNet/blob/master/model.py
+            # Using imagenet as using pretrained weights
+            self.mean = [0.485, 0.456, 0.406]
+            self.std = [0.229, 0.224, 0.225]
+
         normalize = transforms.Normalize(mean = self.mean,std = self.std)   
         self.val_transforms = transforms.Compose([
             transforms.ToTensor(),
@@ -62,12 +72,21 @@ class DatasetLoader:
             normalize,
             ])
         if self.augment:
-            self.train_transforms = transforms.Compose([
-                transforms.RandomCrop(32, padding=4),
+            if self.size == 32:
+                self.train_transforms = transforms.Compose([
+                    transforms.RandomCrop(32, padding=4),
+                    transforms.RandomHorizontalFlip(p=0.5),
+                    transforms.ToTensor(),
+                    normalize,
+                ])
+            elif self.size == 224:
+                self.train_transforms = transforms.Compose([
+                transforms.Resize(256, interpolation=PIL.Image.BICUBIC),
+                transforms.CenterCrop(224),
                 transforms.RandomHorizontalFlip(p=0.5),
                 transforms.ToTensor(),
                 normalize,
-            ])
+                ])                
         else:
             self.train_transforms = transforms.Compose([
                 transforms.ToTensor(),
@@ -90,7 +109,7 @@ class DatasetLoader:
                 root=self.data_dir, train=False,
                 download=False, transform=self.test_transforms,
             )
-        if self.dataset_name == "cifar100":
+        elif self.dataset_name == "cifar100":
             self.train_set = datasets.CIFAR100(
                 root=self.data_dir, train=True,
                 download=False, transform=self.train_transforms,
@@ -103,6 +122,13 @@ class DatasetLoader:
                 root=self.data_dir, train=False,
                 download=False, transform=self.test_transforms,
             )
+        elif self.dataset_name == "chestx":
+            self.train_set = CustomChestXDataset(root=self.data_dir, train=True,
+                download=False, transform=self.train_transforms)
+            self.val_set = CustomChestXDataset(root=self.data_dir, train=True,
+                download=False, transform=self.val_transforms)
+            self.test_set = CustomChestXDataset(root=self.data_dir, train=False,
+                download=False, transform=self.test_transforms)
         return None
     
     def _get_samplers(self):
@@ -123,7 +149,7 @@ class DatasetLoader:
         if self.train_sampler is not None:
             train_loader = torch.utils.data.DataLoader(self.train_set,batch_size = self.train_batch_size, sampler=self.train_sampler,
                 num_workers=1, pin_memory=True)
-            val_loader = torch.utils.data.DataLoader(self.val_set,batch_size = self.val_batch_size, sampler=self.train_sampler,
+            val_loader = torch.utils.data.DataLoader(self.val_set,batch_size = self.val_batch_size, sampler=self.valid_sampler,
                 num_workers=1, pin_memory=True)
         else:
             train_loader = torch.utils.data.DataLoader(self.train_set,batch_size = self.train_batch_size, shuffle = self.shuffle,
