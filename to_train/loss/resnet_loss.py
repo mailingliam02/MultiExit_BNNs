@@ -105,7 +105,7 @@ class ExitEnsembleDistillation(_MultiExitAccuracy):
         avg_acc = 0
         for (x,y) in val_loader:
             x = x.to(device)
-            y = y.to(device)
+            y = y.to(device, dtype=torch.long)
             target = y
             with torch.no_grad():
                 _ = model(x)

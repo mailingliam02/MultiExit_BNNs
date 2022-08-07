@@ -7,14 +7,13 @@ def get_hyperparameters(args):
     gpu = args.gpu
     patience = args.patience
     
-
+    # Train and Val Loaders
+    loader_hyperparameters, dataset_image_size, dataset_out_dim = get_loader_hyperparameters(args)
     # Network
-    network_hyperparameters, mc_dropout_passes = get_network_hyperparameters(model_type, args)
+    network_hyperparameters, mc_dropout_passes = get_network_hyperparameters(model_type, args, dataset_image_size, dataset_out_dim)
     # Losses
     loss_hyperparameters, val_loss_type = get_loss_hyperparameters(network_hyperparameters["n_exits"], model_type, args)
     test_loss_hyperparameters = get_test_hyperparameters(network_hyperparameters["n_exits"], model_type, args)
-    # Train and Val Loaders
-    loader_hyperparameters = get_loader_hyperparameters(args)
     # Optimizer and Scheduler
     opt_hyperparameters, sched_hyperparameters, max_norm = get_opt_sched_hyperparameters(args)
     
@@ -35,7 +34,7 @@ def get_hyperparameters(args):
         )
     return hyperparameters
 
-def get_network_hyperparameters(model_type, args):
+def get_network_hyperparameters(model_type, args, dataset_image_size, dataset_out_dim):
     if model_type == "msdnet":
         hyperparams = dict(          # MSDNet architecture parameters
             call = 'MsdNet',
@@ -112,6 +111,8 @@ def get_network_hyperparameters(model_type, args):
         mc_dropout_passes = 10
     else:
         mc_dropout_passes = 1
+    hyperparams["out_dim"] = dataset_out_dim
+    hyperparams["image_size"] = dataset_image_size
     return hyperparams, mc_dropout_passes
 
 def get_loss_hyperparameters(num_exits, model_type, args, loss_type = "distillation_annealing"):
@@ -237,7 +238,7 @@ def get_opt_sched_hyperparameters(args):
     return cf_opt, cf_scheduler, max_norm
 
 def get_loader_hyperparameters(args):
-    hyperparameters = dict(dataset_name = "cifar100",
+    hyperparameters = dict(dataset_name = args.dataset_name,
         batch_size = (64,64,250), #(train, val, test) 
         # train and val batch sizes should be the same for plotting purposes
         augment = True,
@@ -245,7 +246,14 @@ def get_loader_hyperparameters(args):
         )
     if args.backbone == "resnet18" or args.backbone == "resnet20" or args.backbone == "vgg19":
         hyperparameters["batch_size"] = (128,128,250)
-    return hyperparameters
+    if hyperparameters["dataset_name"] == "chestx":
+        size = 224,
+        out_dim = 7
+        hyperparameters["batch_size"] = (12,12,32)
+    else:
+        size = 32
+        out_dim = 100
+    return hyperparameters, size, out_dim
 
 
 def get_test_hyperparameters(n_exits, model_type,args):

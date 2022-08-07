@@ -37,10 +37,10 @@ def get_vgg_19(ensemble, network_hyperparams):
 
 class VGG(nn.Module):
 
-    def __init__(self, blocks, num_class=100):
+    def __init__(self, blocks, num_class=100, image_size = 32):
         super().__init__()
         self.blocks, self.non_sequentialized_blocks = blocks
-        self.non_sequentialized_classifier = nn.ModuleList(modules = [nn.Linear(512, num_class)])
+        self.non_sequentialized_classifier = make_classifier(image_size,num_class)
         self.classifier = nn.Sequential(*self.non_sequentialized_classifier)
         self.init_weights()
 
@@ -89,6 +89,20 @@ def make_layers(cfg, batch_norm=False):
     for block in range(len(blocks)):
         blocks[block] = nn.Sequential(*blocks[block])
     return (blocks, non_sequentialized_blocks)
+
+
+def make_classifier(size, num_classes):
+    if size == 224:
+        return nn.ModuleList([nn.AdaptiveAvgPool2d((7, 7)),
+            nn.Linear(512 * 7 * 7, 4096),
+            nn.ReLU(True),
+            nn.Dropout(p=0.5),
+            nn.Linear(4096, 4096),
+            nn.ReLU(True),
+            nn.Dropout(p=0.5),
+            nn.Linear(4096, num_classes)])
+    else:
+        return nn.ModuleList([nn.Linear(512, num_classes)])
 
 
 class VGG19(VGG):
@@ -271,4 +285,5 @@ class MCDropout(nn.Dropout):
 
     def forward(self, x):
         return F.dropout(x, self.p, True, self.inplace)
+
 

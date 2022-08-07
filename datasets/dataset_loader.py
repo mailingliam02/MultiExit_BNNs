@@ -33,6 +33,8 @@ class DatasetLoader:
         self.size = 32
         if dataset_name == "imagenet" or dataset_name == "chestx":
             self.size = 224
+            if dataset_name == "chestx":
+                self.data_dir = "/vol/bitbucket/g21mscprj03/SSL/data/chestx"
         self._get_transforms()
         self._get_dataset()
         if self._sampler_needed():
@@ -63,35 +65,55 @@ class DatasetLoader:
             self.std = [0.229, 0.224, 0.225]
 
         normalize = transforms.Normalize(mean = self.mean,std = self.std)   
-        self.val_transforms = transforms.Compose([
-            transforms.ToTensor(),
-            normalize,
-            ])
-        self.test_transforms = transforms.Compose([
-            transforms.ToTensor(),
-            normalize,
-            ])
-        if self.augment:
-            if self.size == 32:
-                self.train_transforms = transforms.Compose([
-                    transforms.RandomCrop(32, padding=4),
-                    transforms.RandomHorizontalFlip(p=0.5),
-                    transforms.ToTensor(),
-                    normalize,
+        if self.size == 224:
+            self.val_transforms = transforms.Compose([
+                transforms.Resize(256, interpolation=torchvision.transforms.InterpolationMode.BICUBIC),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                normalize,
                 ])
-            elif self.size == 224:
+            self.test_transforms = transforms.Compose([
+                transforms.Resize(256, interpolation=torchvision.transforms.InterpolationMode.BICUBIC),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                normalize,
+                ])
+            if self.augment:
                 self.train_transforms = transforms.Compose([
-                transforms.Resize(256, interpolation=PIL.Image.BICUBIC),
+                transforms.Resize(256, interpolation=torchvision.transforms.InterpolationMode.BICUBIC),
                 transforms.CenterCrop(224),
                 transforms.RandomHorizontalFlip(p=0.5),
                 transforms.ToTensor(),
                 normalize,
                 ])                
+            else:
+                self.train_transforms = transforms.Compose([
+                    transforms.Resize(256, interpolation=torchvision.transforms.InterpolationMode.BICUBIC),
+                    transforms.CenterCrop(224),
+                    transforms.ToTensor(),
+                    normalize,
+                ])
         else:
-            self.train_transforms = transforms.Compose([
+            self.val_transforms = transforms.Compose([
                 transforms.ToTensor(),
                 normalize,
-            ])
+                ])
+            self.test_transforms = transforms.Compose([
+                transforms.ToTensor(),
+                normalize,
+                ])
+            if self.augment:
+                self.train_transforms = transforms.Compose([
+                    transforms.RandomCrop(32, padding=4),
+                    transforms.RandomHorizontalFlip(p=0.5),
+                    transforms.ToTensor(),
+                    normalize,
+                ])       
+            else:
+                self.train_transforms = transforms.Compose([
+                    transforms.ToTensor(),
+                    normalize,
+                ])
         return None
 
     def _get_dataset(self):

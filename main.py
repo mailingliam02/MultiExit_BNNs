@@ -29,6 +29,7 @@ parser.add_argument('--grad_clipping', type=float, default = 2)
 parser.add_argument('--gpu', type=int,default=0)
 parser.add_argument('--val_split', type=float, default = 0.1)
 parser.add_argument('--reducelr_on_plateau', type=bool, default = False)
+parser.add_argument('--dataset_name', type=str, default = 'cifar100')
 args = parser.parse_args()
 #https://stackoverflow.com/questions/44561722/why-in-argparse-a-true-is-always-true
 

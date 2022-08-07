@@ -9,12 +9,12 @@ from PIL import Image
 # We change the arguments to match with the rest of our datasets and
 # add a train/test split
 class CustomChestXDataset(Dataset):
-    def __init__(self, img_dir, train = False, transform=None, target_transform=None, download=False):
+    def __init__(self, root = "", train = False, transform=None, target_transform=None, download=False):
         """
         Args:
             img_dir (string): path to dataset
         """
-        self.root = img_dir
+        self.root = root
         self.img_path = self.root + "/images/"
         self.csv_path = self.root + "/Data_Entry_2017.csv"
         self.used_labels = ["Atelectasis", "Cardiomegaly", "Effusion", "Infiltration", "Mass", "Nodule", "Pneumonia", "Pneumothorax"]
@@ -27,7 +27,7 @@ class CustomChestXDataset(Dataset):
         self.transform = transform
         self.target_transform = target_transform
         # Read the csv file
-        df = pd.read_csv(self.csv_path, skiprows=[0], header=None)
+        df = pd.read_csv(self.csv_path)
         # Split by Patient
         random_state = 42
         # Same as https://arxiv.org/abs/1711.05225
