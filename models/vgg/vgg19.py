@@ -19,21 +19,33 @@ def get_vgg_19(ensemble, network_hyperparams):
 
     if ensemble == "early_exit" or ensemble is None:
         # n_exits, out_dim
-        return VGG19EarlyExit(**dict_drop(network_hyperparams,"call", "load_model",
+        model = VGG19EarlyExit(**dict_drop(network_hyperparams,"call", "load_model",
             "resnet_type","dropout","dropout_exit", "dropout_p"))
 
     elif ensemble == "mc":
         # n_exits, out_dim, dropout, dropout_exit, dropout_p
-        return VGG19MC(**dict_drop(network_hyperparams,"call", "load_model",
+        model = VGG19MC(**dict_drop(network_hyperparams,"call", "load_model",
             "resnet_type"))
      
     elif ensemble == "mc_early_exit":
         # n_exits, out_dim, dropout, dropout_exit, dropout_p
-        return VGG19MCEarlyExit(**dict_drop(network_hyperparams,"call", "load_model",
+        model =  VGG19MCEarlyExit(**dict_drop(network_hyperparams,"call", "load_model",
             "resnet_type"))
     else:
         raise ValueError
-    
+
+    if network_hyperparams["size"] == 224 and network_hyperparams["out_dim"] == 7:
+        model = load_imagenet_weights(network_hyperparams, model)
+    return model
+
+def load_imagenet_weights(network_hyperparams, model):
+    state_dict = torch.load("models/model_weights/vgg19_bn-c79401a0.pth")
+    key_list = ['classifier.0.weight', 'classifier.0.bias', 'classifier.3.weight', 'classifier.3.bias', 'classifier.6.weight', 'classifier.6.bias']
+    for key in key_list:
+        del state_dict[key]
+    model.load_state_dict(state_dict, strict = False)
+    return model
+        
 
 class VGG(nn.Module):
 
