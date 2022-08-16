@@ -17,9 +17,9 @@ import numpy as np
 import torch.nn.parallel
 
 class ResourceLoader():
-    def __init__(self, gpu):
+    def __init__(self, gpu, dataset_name):
         # Specify Hyperparameters (maybe add command line compatibility?)
-        self.hyperparameters = get_hyperparameters(self.fake_args(gpu))
+        self.hyperparameters = get_hyperparameters(self.fake_args(gpu, dataset_name))
         #self.hyperparameters["loaders"]["batch_size"] = (1,1,1)
         self.train_loader, self.val_loader, self.test_loader = datasets.get_dataloader(self.hyperparameters["loaders"])
         # Evaluate the Network on Test
@@ -47,10 +47,11 @@ class ResourceLoader():
     def get_loader(self):
         return self.test_loader, self.val_loader
     
-    def fake_args(self, gpu):
+    def fake_args(self, gpu, dataset_name):
         args = types.SimpleNamespace(dropout_exit = False, dropout_p = 0.5,
             dropout_type = None, n_epochs = 300, patience = 50, backbone = "msdnet", 
-            single_exit = False, grad_clipping = 0, gpu = gpu, val_split = 0.1, reducelr_on_plateau = True)
+            single_exit = False, grad_clipping = 0, gpu = gpu, val_split = 0.1, reducelr_on_plateau = True,
+            dataset_name = dataset_name)
         return args
     
 
@@ -607,6 +608,7 @@ class FullAnalysis():
         self.model.eval()
 
         num_instances = len(self.loader.dataset)
+        print(num_instances, len(self.loader)*32)
         labels = np.zeros((num_instances,self.model.out_dim))
         ensembled_preds = np.empty((self.model.n_exits,num_instances,self.model.out_dim))
         preds = np.empty((self.model.n_exits,num_instances,self.model.out_dim))
@@ -619,16 +621,26 @@ class FullAnalysis():
         with torch.no_grad():
             for cur_batch_id, batch in enumerate(self.loader):
                 b_x = batch[0].to(self.device)
-                b_y = batch[1].to(self.device)
+                b_y = batch[1].to(self.device, dtype=torch.long)
+                print(b_x)
                 output, output_sm, output_sm_np, ensemble_output, ensemble_output_sm = self._get_output(b_x)
+                print(output_sm_np)
                 for output_id in self.outputs:
                     layer_correct, layer_wrong, layer_predictions, layer_confidence = self._update_layer_tracker(b_y, output_id, cur_batch_id, layer_correct, layer_wrong, layer_predictions, layer_confidence, output, output_sm)
                     ensemble_layer_correct, ensemble_layer_wrong, ensemble_layer_predictions, ensemble_layer_confidence = self._update_layer_tracker(b_y, output_id, cur_batch_id, ensemble_layer_correct, ensemble_layer_wrong, ensemble_layer_predictions, ensemble_layer_confidence, ensemble_output, ensemble_output_sm)
-                for instance_id in range(b_x.shape[0]):
-                    correct_output = b_y[instance_id].item()
-                    labels[cur_batch_id*b_x.shape[0]+instance_id][correct_output] = 1
+                for batch_instance_id in range(b_x.shape[0]):
+                    if cur_batch_id == len(self.loader)-1:
+                        instance_id = cur_batch_id*self.batch_size+batch_instance_id
+                    else:
+                        instance_id = cur_batch_id*b_x.shape[0]+batch_instance_id
+                    correct_output = b_y[batch_instance_id].item()
+                    labels[instance_id][correct_output] = 1
                 # Will probably have issues if dataset size is not divisble by batch size
-                preds[:,cur_batch_id*b_x.shape[0]:(1+cur_batch_id)*b_x.shape[0], :] = output_sm_np
+                if cur_batch_id == len(self.loader)-1:
+                    preds[:,cur_batch_id*self.batch_size:b_x.shape[0]+cur_batch_id*self.batch_size, :] = output_sm_np
+                else:
+                    preds[:,cur_batch_id*b_x.shape[0]:(1+cur_batch_id)*b_x.shape[0], :] = output_sm_np
+                self.batch_size = b_x.shape[0]
             for i in range(1,preds.shape[0]+1):
                 ensembled_preds_per_layer = np.average(preds[:i,:,:],axis = 0)
                 ensembled_preds[i-1,:,:] = ensembled_preds_per_layer
@@ -648,7 +660,7 @@ class FullAnalysis():
     def get_validation_predictions(self, val_loader):
         self.device = get_device(self.gpu)
         self.model.eval()
-        num_instances = len(val_loader.dataset)
+        num_instances = 2508
         labels = np.zeros((num_instances,self.model.out_dim))
         ensembled_preds = np.empty((self.model.n_exits,num_instances,self.model.out_dim))
         preds = np.empty((self.model.n_exits,num_instances,self.model.out_dim))
@@ -656,16 +668,28 @@ class FullAnalysis():
         with torch.no_grad():
             for cur_batch_id, batch in enumerate(val_loader):
                 b_x = batch[0].to(self.device)
-                b_y = batch[1].to(self.device)
+                b_y = batch[1].to(self.device, dtype=torch.long)
                 _, _, output_sm_np, _, _ = self._get_output(b_x)
-                for instance_id in range(b_x.shape[0]):
-                    correct_output = b_y[instance_id].item()
-                    labels[cur_batch_id*b_x.shape[0]+instance_id][correct_output] = 1
+                for batch_instance_id in range(b_x.shape[0]):
+                    if cur_batch_id == len(val_loader)-1:
+                        print("b_x",b_x.shape)
+                        instance_id = cur_batch_id*self.batch_size+batch_instance_id
+                    else:
+                        instance_id = cur_batch_id*b_x.shape[0]+batch_instance_id
+                    correct_output = b_y[batch_instance_id].item()
+                    labels[instance_id][correct_output] = 1
                 # Will probably have issues if dataset size is not divisble by batch size
-                preds[:,cur_batch_id*b_x.shape[0]:(1+cur_batch_id)*b_x.shape[0], :] = output_sm_np
+                if cur_batch_id == len(val_loader)-1:
+                    preds[:,cur_batch_id*self.batch_size:b_x.shape[0]+cur_batch_id*self.batch_size, :] = output_sm_np
+                else:
+                    preds[:,cur_batch_id*b_x.shape[0]:(1+cur_batch_id)*b_x.shape[0], :] = output_sm_np
+                self.batch_size = b_x.shape[0]
             for i in range(1,preds.shape[0]+1):
                 ensembled_preds_per_layer = np.average(preds[:i,:,:],axis = 0)
                 ensembled_preds[i-1,:,:] = ensembled_preds_per_layer
+        for layer in range(preds.shape[0]):
+            print(f"Preds {layer}",self.ece_eval_binary(preds[layer],labels))
+            print(f"Ensembled Preds {layer}",self.ece_eval_binary(ensembled_preds[layer],labels))
         return preds, ensembled_preds, labels
 
     def save_validation(self, experiment_id, loader):
@@ -950,6 +974,9 @@ class FullAnalysis():
         N = p.shape[0]
         p = np.clip(p,1e-256,1-1e-256)
         nll = -np.sum(label*np.log(p))/N # log_likelihood
+        print("Label and p")
+        print(label[-30:,:])
+        print(p[-30:,:])
         accu = (np.sum((np.argmax(p,1)-np.array([np.where(r==1)[0][0] for r in label]))==0)/p.shape[0]) # Accuracy
         ece = self.ece_hist_binary(p,label).cpu().numpy() # ECE
         # or if KDE is used
@@ -996,8 +1023,9 @@ if __name__ == "__main__":
     parser.add_argument('--full_and_save', type=bool, default = False)
     parser.add_argument('--multiple_pass', type=bool, default = False)
     parser.add_argument('--gpu', type=int, default = 0)
+    parser.add_argument('--dataset_name', type=str,default="cifar100")
     args = parser.parse_args()
-    resources = ResourceLoader(args.gpu)
+    resources = ResourceLoader(args.gpu, args.dataset_name)
     test_loader, val_loader = resources.get_loader()
     model = resources.get_model(args.model_num, model_type = "val")
     if args.full_and_save:

@@ -31,16 +31,20 @@ class CustomChestXDataset(Dataset):
         # Split by Patient
         random_state = 42
         # Same as https://arxiv.org/abs/1711.05225
-        self.train_len = 24644 + 3081
+        self.train_len = 24644
+        self.val_len = 3081
         self.test_len = 3080
         random.seed(random_state)
-        self.all_patients = list(range(self.train_len+self.test_len))
+        self.all_patients = list(range(self.train_len+self.val_len+self.test_len))
         random.shuffle(self.all_patients)
         self.train_patients = self.all_patients[:self.train_len]
-        self.test_patients = self.all_patients[self.train_len:]
+        self.val_patients = self.all_patients[self.train_len:self.train_len+self.val_len]
+        self.test_patients = self.all_patients[self.train_len+self.val_len:]
         df.columns = [c.replace(' ', '_') for c in df.columns]
-        if train:
+        if train == "train":
             self.data_info = df[pd.DataFrame(df.Patient_ID.tolist()).isin(self.train_patients).any(1).values]
+        elif train == "val":
+            self.data_info = df[pd.DataFrame(df.Patient_ID.tolist()).isin(self.val_patients).any(1).values]
         else:
             self.data_info = df[pd.DataFrame(df.Patient_ID.tolist()).isin(self.test_patients).any(1).values]
 
@@ -70,17 +74,14 @@ class CustomChestXDataset(Dataset):
         # Open image
         img_path = os.path.join(self.img_path, single_image_name)
         img = Image.open(img_path).convert('RGB')
-
         # Transform
         if self.transform:
             img = self.transform(img)
-
         # Get label(class) of the image based on the cropped pandas column
         single_image_label = self.labels[index] # int64
         single_image_label = np.float32(single_image_label) #convert
         if self.target_transform:
             single_image_label = self.target_transform(single_image_label)
-        
         return img, single_image_label
 
     def __len__(self):

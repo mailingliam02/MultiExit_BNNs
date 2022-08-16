@@ -232,6 +232,17 @@ def get_opt_sched_hyperparameters(args):
             milestones = [75,130,180],
             gamma = 0.1)
 
+    if args.dataset_name == "chestx":
+        cf_opt = dict(          # optimization method
+            call = 'Adam',
+            lr = 0.0001,
+            weight_decay = 1e-4 # seeing if this helps
+            )  
+        cf_scheduler = dict(   # learning rate schedule
+            call = "ReduceLROnPlateau",
+            factor = 0.1,
+            patience = 5,)
+            
     max_norm = args.grad_clipping
     if args.grad_clipping == 0:
         max_norm = None
@@ -246,10 +257,11 @@ def get_loader_hyperparameters(args):
         )
     if args.backbone == "resnet18" or args.backbone == "resnet20" or args.backbone == "vgg19":
         hyperparameters["batch_size"] = (128,128,250)
+        
     if hyperparameters["dataset_name"] == "chestx":
-        size = 224,
+        size = 224
         out_dim = 7
-        hyperparameters["batch_size"] = (12,12,32)
+        hyperparameters["batch_size"] = (16,16,32)
     else:
         size = 32
         out_dim = 100

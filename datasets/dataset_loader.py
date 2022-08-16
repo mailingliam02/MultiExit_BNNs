@@ -34,7 +34,7 @@ class DatasetLoader:
         if dataset_name == "imagenet" or dataset_name == "chestx":
             self.size = 224
             if dataset_name == "chestx":
-                self.data_dir = "/vol/bitbucket/g21mscprj03/SSL/data/chestx"
+                self.data_dir = "/mnt/ccnas2/tdp/lrc121/data/chestx"
         self._get_transforms()
         self._get_dataset()
         if self._sampler_needed():
@@ -43,7 +43,7 @@ class DatasetLoader:
             self.train_sampler = None
 
     def _sampler_needed(self):
-        datasets_without_val = ["cifar10","cifar100","imagenet","chestx"]
+        datasets_without_val = ["cifar10","cifar100","imagenet"]
         if self.dataset_name in datasets_without_val:
             self.shuffle = False
             return True
@@ -145,11 +145,11 @@ class DatasetLoader:
                 download=False, transform=self.test_transforms,
             )
         elif self.dataset_name == "chestx":
-            self.train_set = CustomChestXDataset(root=self.data_dir, train=True,
+            self.train_set = CustomChestXDataset(root=self.data_dir, train="train",
                 download=False, transform=self.train_transforms)
-            self.val_set = CustomChestXDataset(root=self.data_dir, train=True,
+            self.val_set = CustomChestXDataset(root=self.data_dir, train="val",
                 download=False, transform=self.val_transforms)
-            self.test_set = CustomChestXDataset(root=self.data_dir, train=False,
+            self.test_set = CustomChestXDataset(root=self.data_dir, train="test",
                 download=False, transform=self.test_transforms)
         return None
     
