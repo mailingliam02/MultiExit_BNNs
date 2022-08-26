@@ -30,6 +30,7 @@ parser.add_argument('--gpu', type=int,default=0)
 parser.add_argument('--val_split', type=float, default = 0.1)
 parser.add_argument('--reducelr_on_plateau', type=bool, default = False)
 parser.add_argument('--dataset_name', type=str, default = 'cifar100')
+parser.add_argument('--grad_accumulation',type=int,default = 0)
 args = parser.parse_args()
 #https://stackoverflow.com/questions/44561722/why-in-argparse-a-true-is-always-true
 
@@ -52,7 +53,8 @@ def main(_config):
     print("Creating Network")
     # Follow og for info on how to parralelize!
     model = models.get_network(hyperparameters["network"])
-
+    # Print Full Model
+    print(model)
     # Train the Network
     print("Starting Training")
     # Get loss function (if class need to initialize it then run it)
@@ -67,7 +69,8 @@ def main(_config):
             epochs = hyperparameters["n_epochs"], 
             patience = hyperparameters["patience"],
             max_norm = hyperparameters["max_norm"],
-            val_loss_type = hyperparameters["val_loss_type"]) # model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gpu = -1
+            val_loss_type = hyperparameters["val_loss_type"],
+            grad_accumulation = hyperparameters["grad_accumulation"]) # model, optimizer, scheduler,  data_loaders, loss_fn, epochs=1, gpu = -1
 
     # Evaluate the Network on Test
     test_loss_fn = to_train.get_loss_function(hyperparameters["test_loss"])
