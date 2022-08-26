@@ -3,27 +3,34 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from to_train.train_utils import get_device, validate_model, tab_str, predict, plot_loss
 
 # From https://pytorch.org/tutorials/beginner/introyt/trainingyt.html#the-training-loop
-def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = torch.float32, max_norm = 10):
+def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = torch.float32, max_norm = 10, grad_accumulation = None):
     running_loss = 0
     last_loss = 0
     # Here, we use enumerate(training_loader) instead of
     # iter(training_loader) so that we can track the batch
     # index and do some intra-epoch reporting
+    optimizer.zero_grad()
     for i, (x,y) in enumerate(data_loader):
         # Every data instance is an input + label pair
         x = x.to(device=device, dtype=dtype)  # move to device
         y = y.to(device=device, dtype=torch.long)
         # Zero your gradients for every batch!
-        optimizer.zero_grad()
 
         # Compute the loss and its gradients
         loss = loss_fn(model,x, y)
         loss.backward()
+
         # Needed for training (Need to look into this more!)
         if max_norm is not None:
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
         # Adjust learning weights
-        optimizer.step()
+        if grad_accumulation is not None:
+            if i % grad_accumulation or i == (len(data_loader) - 1):
+                optimizer.step()
+                optimizer.zero_grad()
+        else:
+            optimizer.step()
+            optimizer.zero_grad()
 
         # Gather data and report
         running_loss += loss.item()
@@ -36,7 +43,7 @@ def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = t
 
 # From https://gitlab.doc.ic.ac.uk/lab2122_spring/DL_CW_1_lrc121/-/blob/master/dl_cw_1.ipynb
 def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_id, max_norm = 1, patience = 20, epochs=1, 
-                gpu = -1, val_loss_type = "acc"):
+                gpu = -1, val_loss_type = "acc", grad_accumulation = None):
                             # Change to str as opposed to bool
     """
     Train a model.
@@ -59,7 +66,7 @@ def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_i
     for e in range(epochs):
         train_loss, val_loss = validate_model(loss_fn, model, val_loader, gpu, loss_type = val_loss_type)
         print("Before Training:",train_loss,val_loss)
-        last_loss = train_single_epoch(model,train_loader,optimizer,loss_fn, device, max_norm = max_norm)
+        last_loss = train_single_epoch(model,train_loader,optimizer,loss_fn, device, max_norm = max_norm, grad_accumulation=grad_accumulation)
         train_loss, val_loss = validate_model(loss_fn, model, val_loader, gpu, loss_type = val_loss_type)
         all_train_losses.append(train_loss)
         all_val_losses.append(val_loss)
