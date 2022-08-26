@@ -15,7 +15,7 @@ def get_hyperparameters(args):
     loss_hyperparameters, val_loss_type = get_loss_hyperparameters(network_hyperparameters["n_exits"], model_type, args)
     test_loss_hyperparameters = get_test_hyperparameters(network_hyperparameters["n_exits"], model_type, args)
     # Optimizer and Scheduler
-    opt_hyperparameters, sched_hyperparameters, max_norm = get_opt_sched_hyperparameters(args)
+    opt_hyperparameters, sched_hyperparameters, max_norm, grad_accumulation = get_opt_sched_hyperparameters(args)
     
     
     hyperparameters = dict(
@@ -31,6 +31,7 @@ def get_hyperparameters(args):
         max_norm = max_norm,
         val_loss_type = val_loss_type,
         loaders = loader_hyperparameters,
+        grad_accumulation = grad_accumulation,
         )
     return hyperparameters
 
@@ -235,8 +236,8 @@ def get_opt_sched_hyperparameters(args):
     if args.dataset_name == "chestx":
         cf_opt = dict(          # optimization method
             call = 'Adam',
-            lr = 0.0001,
-            weight_decay = 1e-4 # seeing if this helps
+            lr = 0.0005,
+            weight_decay = 0 
             )  
         cf_scheduler = dict(   # learning rate schedule
             call = "ReduceLROnPlateau",
@@ -246,7 +247,10 @@ def get_opt_sched_hyperparameters(args):
     max_norm = args.grad_clipping
     if args.grad_clipping == 0:
         max_norm = None
-    return cf_opt, cf_scheduler, max_norm
+    grad_accumulation = args.grad_accumulation
+    if args.grad_accumulation == 0:
+        grad_accumulation = None
+    return cf_opt, cf_scheduler, max_norm, grad_accumulation
 
 def get_loader_hyperparameters(args):
     hyperparameters = dict(dataset_name = args.dataset_name,
