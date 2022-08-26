@@ -111,7 +111,7 @@ class ExitEnsembleDistillation(_MultiExitAccuracy):
                 final_fea, middle_feas = model.intermediary_output_list
                 loss = self.criterion(output, target)
                 prec1 = self.accuracy(output.data, target, topk=(1,))
-                avg_acc_batch = prec1[0]
+                avg_acc_batch = prec1[0].clone().detach()
                 for middle_output in middle_outputs:
                     avg_acc_batch += self.accuracy(middle_output.data, target, topk=(1,))[0]
                 avg_acc_batch /= (len(middle_outputs)+1)
