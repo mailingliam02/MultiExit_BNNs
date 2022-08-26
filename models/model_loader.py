@@ -13,7 +13,11 @@ def dict_drop(dic, *keys):
 def get_network(network_hyperparams):
     if network_hyperparams["load_model"] is not None:
         if torch.cuda.is_available():
-            model = torch.load(network_hyperparams["load_model"])
+            try:
+                device = network_hyperparams["gpu_device"]
+                model = torch.load(network_hyperparams["load_model"], map_location = device)
+            except KeyError:
+                model = torch.load(network_hyperparams["load_model"])
         else:
             model = torch.load(network_hyperparams["load_model"], map_location=torch.device('cpu'))
     elif network_hyperparams["call"] == "MsdNet":
