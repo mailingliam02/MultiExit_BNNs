@@ -86,6 +86,7 @@ def main(_config):
             mc_dropout = dropout, mc_passes = hyperparameters["mc_dropout_passes"])
         full_analyzer.all_experiments(experiment_id)
         full_analyzer.save_validation(experiment_id, val_loader)
+        full_analyzer.get_confidence_exiting_values(experiment_id)
     return results
 
 if __name__ == "__main__":
