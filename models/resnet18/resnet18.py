@@ -207,7 +207,7 @@ class MCDropout(nn.Dropout):
         return F.dropout(x, self.p, True, self.inplace)
 
 class ResNet18MC(ResNet):
-    def __init__(self,dropout_exit = False, dropout = None, dropout_p = 0.5, n_exits = 1, out_dim = 100, *args,  **kwargs):
+    def __init__(self,dropout_exit = False, dropout = None, dropout_p = 0.5, n_exits = 1, out_dim = 100, image_size = 32, *args,  **kwargs):
         super().__init__(block=BasicBlock, num_blocks=[2,2,2,2], num_classes=out_dim, *args,  **kwargs)
         self.n_exits = n_exits
         self.out_dim = out_dim
@@ -217,11 +217,18 @@ class ResNet18MC(ResNet):
         layer_list = [self.layer1, self.layer2, self.layer3, self.layer4]
         if dropout == "block":
             for i in range(len(layer_list)):
-                layer_list[i].add_module("dropout", MCDropout(self.dropout_p))
+                if i == len(layer_list)-1:
+                    pass
+                else:
+                    layer_list[i] = nn.Sequential(layer_list[i],MCDropout(self.dropout_p))
+            self.layer1, self.layer2, self.layer3, self.layer4 = layer_list
         elif dropout == "layer":
             for block in range(len(layer_list)):
                 for layer in range(len(layer_list[block])):
-                    layer_list[block][layer].add_module("dropout", MCDropout(self.dropout_p))
+                    if block == len(layer_list)-1 and layer == len(layer_list[block])-1:
+                        pass
+                    else:
+                        layer_list[block][layer] = nn.Sequential(layer_list[block][layer],MCDropout(self.dropout_p))
         if self.dropout_exit:
             self.exit_dropout = MCDropout(self.dropout_p)
 
@@ -241,7 +248,7 @@ class ResNet18MC(ResNet):
         return [out]
 
 class ResNet18MCEarlyExitLee(ResNet):
-    def __init__(self,dropout_exit = False, dropout = None, dropout_p = 0.5, n_exits = 4, out_dim = 100, *args,  **kwargs):
+    def __init__(self,dropout_exit = False, dropout = None, dropout_p = 0.5, n_exits = 4, out_dim = 100, image_size = 32, *args,  **kwargs):
         super().__init__(block=BasicBlock, num_blocks=[2,2,2,2], num_classes=out_dim, *args,  **kwargs)
         self.n_exits = n_exits
         self.out_dim = out_dim
@@ -249,9 +256,20 @@ class ResNet18MCEarlyExitLee(ResNet):
         self.dropout = dropout
         self.dropout_p = dropout_p
         layer_list = [self.layer1, self.layer2, self.layer3, self.layer4]
-        if dropout is not None:
+        if dropout == "block":
             for i in range(len(layer_list)):
-                layer_list[i].add_module("dropout", MCDropout(self.dropout_p))
+                if i == len(layer_list)-1:
+                    pass
+                else:
+                    layer_list[i] = nn.Sequential(layer_list[i],MCDropout(self.dropout_p))
+        elif dropout == "layer":
+            for block in range(len(layer_list)):
+                for layer in range(len(layer_list[block])):
+                    if block == len(layer_list)-1 and layer == len(layer_list[block])-1:
+                        pass
+                    else:
+                        layer_list[block][layer] = nn.Sequential(layer_list[block][layer],MCDropout(self.dropout_p))
+
         if self.dropout_exit:
             self.exit1_dropout = MCDropout(self.dropout_p)
             self.exit2_dropout = MCDropout(self.dropout_p)

@@ -748,7 +748,6 @@ if __name__ == "__main__":
     parser.add_argument('--multiple_pass', type=bool, default = False)
     parser.add_argument('--gpu', type=int, default = 0)
     parser.add_argument('--automated_experiment', type=bool, default = False)
-    parser.add_argument('--automated_experiment_2', type=bool, default = False)
     parser.add_argument('--dataset_name', type=str, default = "chestx")
     args = parser.parse_args()
     resources = ResourceLoader(args.gpu, args.dataset_name)
