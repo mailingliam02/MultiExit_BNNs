@@ -180,6 +180,7 @@ class FullAnalysis():
             num_instances = len(val_loader.sampler.indices)
         else:
             num_instances = len(self.loader.dataset)
+        layer_correct, layer_wrong, layer_predictions, layer_confidence = self._init_layer_trackers()
         labels = np.zeros((num_instances,self.model.out_dim))
         ensembled_preds = np.empty((self.model.n_exits,num_instances,self.model.out_dim))
         preds = np.empty((self.model.n_exits,num_instances,self.model.out_dim))
