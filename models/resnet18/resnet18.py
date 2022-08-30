@@ -262,6 +262,7 @@ class ResNet18MCEarlyExitLee(ResNet):
                     pass
                 else:
                     layer_list[i] = nn.Sequential(layer_list[i],MCDropout(self.dropout_p))
+            self.layer1, self.layer2, self.layer3, self.layer4 = layer_list
         elif dropout == "layer":
             for block in range(len(layer_list)):
                 for layer in range(len(layer_list[block])):
