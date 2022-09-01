@@ -22,7 +22,7 @@ class MsdNet(_TraceInForward):
                  nplanes_addh:int, nplanes_init=32, prune=None,
                  plane_reduction=0.0, exit_width=None, btneck_widths=(),
                  execute_exits=None, test_mode = False, dropout = None, 
-                 dropout_p = 0.5, dropout_exit = False):
+                 dropout_p = 0.5, dropout_exit = False, *args, **kwargs):
         """Creates the Multi-Scale DenseNet
         Attributes
         ----------
