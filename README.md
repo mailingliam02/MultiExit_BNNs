@@ -48,22 +48,22 @@ If using the pretrained models, download the weights from: https://download.pyto
 
 To train and evaluate an MSDNet with dropout layers (p=0.125) in the exits and after every block on Cifar100:
 ```
-python3 /vol/bitbucket/lrc121/ind_proj/MultiExit_BNNs/main.py --full_analysis_and_save True --backbone msdnet --grad_clipping 0 --n_epochs 300 --dropout_exit True --dropout_p 0.125 --dropout_type block --reducelr_on_plateau True
+python3 main.py --full_analysis_and_save True --backbone msdnet --grad_clipping 0 --n_epochs 300 --dropout_exit True --dropout_p 0.125 --dropout_type block --reducelr_on_plateau True
 ```
 
 To train and evaluate a ResNet with dropout layers (p=0.5) in the exits and after every layer on Cifar100:
 ```
-python3 /vol/bitbucket/lrc121/ind_proj/MultiExit_BNNs/main.py --full_analysis_and_save True --backbone resnet18 --grad_clipping 0 --n_epochs 200 --dropout_exit True --dropout_p 0.5 --dropout_type layer --reducelr_on_plateau True
+python3 main.py --full_analysis_and_save True --backbone resnet18 --grad_clipping 0 --n_epochs 200 --dropout_exit True --dropout_p 0.5 --dropout_type layer --reducelr_on_plateau True
 ```
 
 To train and evaluate a VGG19 with dropout layers (p=0.125) in the exits only on Cifar100 with grad clipping of 2:
 ```
-python3 /vol/bitbucket/lrc121/ind_proj/MultiExit_BNNs/main.py --full_analysis_and_save True --backbone vgg19 --grad_clipping 2 --n_epochs 200 --dropout_exit True --dropout_p 0.125 --reducelr_on_plateau True
+python3 main.py --full_analysis_and_save True --backbone vgg19 --grad_clipping 2 --n_epochs 200 --dropout_exit True --dropout_p 0.125 --reducelr_on_plateau True
 ```
 
 To train and evaluate a VGG19 with dropout layers (p=0.125) in the exits and after every block with gradient accumulation on ChestX-ray 14:
 ```
-python3 /vol/bitbucket/lrc121/ind_proj/MultiExit_BNNs/main.py --full_analysis_and_save True --backbone vgg19 --grad_clipping 0 --n_epochs 200 --dropout_exit True --dropout_p 0.125 --dropout_type block --reducelr_on_plateau True --dataset_name chestx --grad_accumulation 16
+python3 main.py --full_analysis_and_save True --backbone vgg19 --grad_clipping 0 --n_epochs 200 --dropout_exit True --dropout_p 0.125 --dropout_type block --reducelr_on_plateau True --dataset_name chestx --grad_accumulation 16
 ```
  
 ## Datasets
