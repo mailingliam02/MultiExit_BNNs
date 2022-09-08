@@ -34,8 +34,6 @@ class DatasetLoader:
         self.size = 32
         if dataset_name == "imagenet" or dataset_name == "chestx":
             self.size = 224
-            if dataset_name == "chestx":
-                self.data_dir = "/mnt/ccnas2/tdp/lrc121/data/chestx"
         self._get_transforms()
         self._get_dataset()
         if self._sampler_needed():
