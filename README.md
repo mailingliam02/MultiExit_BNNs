@@ -43,6 +43,9 @@ The code for the  is adapted from the codebase (https://github.com/DmitryUlyanov
 }
 ``` 
 
+# How to Run
+
+
 # Directory Structure
 
     ├── data
@@ -50,24 +53,13 @@ The code for the  is adapted from the codebase (https://github.com/DmitryUlyanov
     ├── models
     ├── to_train
 
-# Methods
-
-We evaluate the transfer peformance of several self-supervised pretrained models on medical image classification tasks. We also perform the same evaluation on a selection of supervised pretrained models and self-supervised medical domain-specific pretrained models (both pretrained on X-ray datasets). The pretrained models, datasets and evaulation methods are detailed in this readme.
-
        
 ## Pretrained Models
-We evaluate the following pretrained ResNet50 models (with links)
+To run the pretrained VGG-19 with preloaded model weights, download the weights from:
 
-| Model | URL |
-|-------|-----|
-| PIRL | https://www.dropbox.com/sh/87d24jqsl6ra7t2/AADN4jKnvTI0U5oT6hTmQZz8a/PIRL.pth |
-| MoCo-v2 | https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v2_800ep/moco_v2_800ep_pretrain.pth.tar |
-| SimCLR-v1 | https://storage.cloud.google.com/simclr-gcs/checkpoints/ResNet50_1x.zip |
-| BYOL | https://storage.googleapis.com/deepmind-byol/checkpoints/pretrain_res50x1.pkl |
-| SwAV | https://dl.fbaipublicfiles.com/deepcluster/swav_800ep_pretrain.pth.tar |
-| Supervised_r50 | Weights from `torchvision.models.resnet50(pretrained=True)` |
+https://www.dropbox.com/sh/87d24jqsl6ra7t2/AADN4jKnvTI0U5oT6hTmQZz8a/PIRL.pth
 
-To download and prepare all the above models in the same format, place them in X
+And place the .pth file in X
 
 ## Datasets
 The data directory should be set up with the following structure:
@@ -76,8 +68,8 @@ The data directory should be set up with the following structure:
         ├── chestx
             ├── Data_Entry_2017.csv
             ├── images
-        ├── CIFAR10
-            ├── cifar-10-batches-py
+        ├── CIFAR100
+            ├── cifar-100-batches-py
          
     
 Links for where to download each dataset are given here:
@@ -85,12 +77,9 @@ Links for where to download each dataset are given here:
 [CIFAR100](https://pytorch.org/vision/stable/datasets.html),
 
 ### Note:
-Downloading and unpacking the files above into the relevant directory should yield the structure above. A few of the datasets need additional tinkering to get into the desired format, and we give the instructions for those datasets here:
 
-**ChestX**: Unpacking into the chestx directory, the various image folders (images_001, images_002,...,images_012) were combined so that all image files were contained directly in a single images directory as in the above structure. This can be done by repeated usage of:
+**ChestX**: When unpacking into the chestx directory, the various image folders (images_001, images_002,...,images_012) were combined so that all image files were contained directly in a single images directory as in the above structure. This can be done by repeated usage of:
 ```
 mv images_0XX/* images/
 ```
-
-# Training 
 
