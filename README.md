@@ -1,12 +1,11 @@
 # Combining Monte Carlo dropout with Early Exit Ensembling
-This repository contains the codebase for all experiments for the Independent Project `Combining Monte Carlo dropout with Early Exit Ensembling` (Imperial MSc AI 2022). <br />
-Authors: [Liam Castelli](https://github.com/mailingliam02)
+This github repo contains the codebase for all experiments for the Independent Project `Combining Monte Carlo dropout with Early Exit Ensembling` (Imperial MSc AI 2022). <br />
 
 Abstract:
 `
 In this report, a novel method to improve uncertainty quantification in convolutional neural networks is tested. Monte Carlo dropout is combined with early exit ensembling, and is shown to improve both accuracy and uncertainty quantification across three different models and on Cifar100 and a medical chest x-ray dataset, ChestX-ray 14. On average, the expected calibration error was reduced by 50\%, 17.7\% and 16.7\% for the MSDNet, VGG-19 and ResNet-18 on Cifar100 over the best tested methods from the literature. For the chest x-ray dataset, the combination models can match the best methods from the literature, while needing 55\% fewer FLOPs. While the combination is found to outperform alternatives, it requires significant hyperparameter tuning to achieve optimal results. Further research is required to determine the best method for finding the best parameters. 
 `
-
+This codebase is largely inspired from the following two sources:
 The code for the MSDNet and the distillation loss is adapted from [Distillation-Based Training for Multi-Exit Architectures](https://ieeexplore.ieee.org/document/9009834)
 
 ```
@@ -32,19 +31,13 @@ The code for the ResNet and the bidirectional distillation loss is adapted from 
 }
 ```
 
-The code for the  is adapted from the codebase (https://github.com/DmitryUlyanov/deep-image-prior) for the paper [Deep Image Prior](https://arxiv.org/abs/1711.10925):
-
-```
-@article{UlyanovVL17,
-    author    = {Ulyanov, Dmitry and Vedaldi, Andrea and Lempitsky, Victor},
-    title     = {Deep Image Prior},
-    journal   = {arXiv:1711.10925},
-    year      = {2017}
-}
-``` 
-
 # How to Run
+To run the repository, run the following commands from the repo base folder:
 
+pip install requirements.txt
+mkdir snapshots
+mkdir runs_db
+mkdir snapshots/figures
 
 # Directory Structure
 
