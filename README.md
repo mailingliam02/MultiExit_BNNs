@@ -65,14 +65,6 @@ To train and evaluate a VGG19 with dropout layers (p=0.125) in the exits and aft
 ```
 python3 /vol/bitbucket/lrc121/ind_proj/MultiExit_BNNs/main.py --full_analysis_and_save True --backbone vgg19 --grad_clipping 0 --n_epochs 200 --dropout_exit True --dropout_p 0.125 --dropout_type block --reducelr_on_plateau True --dataset_name chestx --grad_accumulation 16
 ```
-
-## Directory Structure
-
-    ├── data
-    ├── datasets                  
-    ├── models
-    ├── to_train
-
  
 ## Datasets
 The data directory should be set up with the following structure:
