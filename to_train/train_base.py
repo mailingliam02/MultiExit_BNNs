@@ -2,7 +2,8 @@ import torch
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from to_train.train_utils import get_device, validate_model, tab_str, predict, plot_loss
 
-# From https://pytorch.org/tutorials/beginner/introyt/trainingyt.html#the-training-loop
+# Structure is from https://pytorch.org/tutorials/beginner/introyt/trainingyt.html#the-training-loop
+# Slight modifications for grad clipping and grad accumulation
 def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = torch.float32, max_norm = 10, grad_accumulation = None):
     running_loss = 0
     last_loss = 0
@@ -41,18 +42,14 @@ def train_single_epoch(model, data_loader, optimizer, loss_fn, device, dtype = t
             running_loss = 0.
     return last_loss
 
-# From https://gitlab.doc.ic.ac.uk/lab2122_spring/DL_CW_1_lrc121/-/blob/master/dl_cw_1.ipynb
+# Structure is primarily from the 2022 Deep Learning CW1 task:
+# https://gitlab.doc.ic.ac.uk/lab2122_spring/DL_CW_1_lrc121/-/blob/master/dl_cw_1.ipynb
+# Modifications are made to include additional arguments and early stopping
 def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_id, max_norm = 1, patience = 20, epochs=1, 
                 gpu = -1, val_loss_type = "acc", grad_accumulation = None):
                             # Change to str as opposed to bool
     """
-    Train a model.
-    
-    Inputs:
-    - model: A PyTorch Module giving the model to train.
-    - optimizer: An Optimizer object we will use to train the model
-    - epochs: (Optional) A Python integer giving the number of epochs to train for
-    - gpu: (Optional) -1 for cpu, >=0 for gpu
+    Train a model
     """
     device = get_device(gpu)
     train_loader, val_loader = data_loaders

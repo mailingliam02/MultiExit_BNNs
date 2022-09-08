@@ -4,6 +4,8 @@ import numpy as np
 from to_train.loss import dict_drop, get_loss_function
 from to_train.loss.resnet_loss import ExitEnsembleDistillation
 
+# Various random functions, mostly from: https://github.com/mary-phuong/multiexit-distillation/blob/master/main.py
+# or https://github.com/mary-phuong/multiexit-distillation/blob/master/utils.py
 def get_device(gpu):
     return torch.device(f'cuda:{gpu}' if gpu >= 0 else 'cpu')
 

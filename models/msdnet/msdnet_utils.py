@@ -2,6 +2,8 @@ import collections
 import torch
 from torch import nn
 
+# Most of the below classes and functions are from: https://github.com/mary-phuong/multiexit-distillation/blob/master/main.py
+# However, have been separated out into different files for readability and to make code more modular
 def ConvBnRelu2d(in_channels, out_channels, kernel_size, stride=1, padding=0):
     in_channels = int(in_channels)
     out_channels = int(out_channels)

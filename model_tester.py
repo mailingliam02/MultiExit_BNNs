@@ -50,6 +50,9 @@ class ResourceLoader():
             dataset_name = dataset_name, grad_accumulation = 0)
         return args
 
+# Below class is a combination of methods from: https://github.com/yigitcankaya/Shallow-Deep-Networks/blob/1719a34163d55ff237467c542db86b7e1f9d7628/model_funcs.py
+# and https://github.com/zhang64-llnl/Mix-n-Match-Calibration/blob/e41afbaf8181a0bd2fb194f9e9d30bcbe5b7f6c3/util_evaluation.py
+# Both have been modified to work with Monte Carlo Dropout and Ensembling
 class FullAnalysis():
     def __init__(self, model, test_loader, gpu=0, mc_dropout = False, mc_passes = 10):
         self.model = model

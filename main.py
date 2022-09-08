@@ -11,6 +11,7 @@ from evaluate import evaluate
 from utils import RUNS_DB_DIR
 from model_tester import FullAnalysis
 
+# Inspired by https://github.com/mary-phuong/multiexit-distillation/blob/master/train.py
 sacred.SETTINGS['CAPTURE_MODE'] = 'sys'
 sacred.SETTINGS['HOST_INFO']['INCLUDE_GPU_INFO'] = False
 ex = sacred.Experiment()
@@ -51,7 +52,6 @@ def main(_config):
 
     # Load the Network
     print("Creating Network")
-    # Follow og for info on how to parralelize!
     model = models.get_network(hyperparameters["network"])
     # Print Full Model
     print(model)

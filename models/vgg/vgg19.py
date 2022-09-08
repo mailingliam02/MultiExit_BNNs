@@ -82,7 +82,8 @@ def vgg_pytorch_to_new_vgg(state_dict):
             layer += 1
     return state_dict
         
-
+# Below VGG and VGG19 classes are mainly adapted from: https://github.com/kuangliu/pytorch-cifar/blob/master/models/vgg.py 
+# and https://github.com/Lornatang/pytorch-vgg19-cifar100/blob/master/vgg.py 
 class VGG(nn.Module):
 
     def __init__(self, blocks, num_class=100, image_size = 32):
@@ -229,6 +230,8 @@ class VGG19MC(VGG19):
         self.intermediary_output_list = (output, [], 0, [])
         return [output]
 
+
+# Heavily inspired from the ResNet version: https://github.com/hjdw2/Exit-Ensemble-Distillation/blob/main/resnet.py
 class VGG19EarlyExit(VGG19):
     def __init__(self, *args,  **kwargs):
         super().__init__(*args,  **kwargs)

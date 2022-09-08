@@ -3,22 +3,11 @@ from torch import nn
 from models.msdnet.msdnet_utils import ConvBnRelu2d, MsdJoinConv, MultiInputSequential
 from models.mcdropout import get_dropout
 
-class MsdLayer0(nn.Module):
-    """Creates the first layer of MsdNet
-    Attributes
-    ----------
-    nplanes_list : np arr
-        
-    surname : str
-        family name of the person
-    age : int
-        age of the person
+# Both of the below classes are from: https://github.com/mary-phuong/multiexit-distillation/blob/master/main.py
+# Minorly adapted to include conditionals to add dropout layers
 
-    Methods
-    -------
-    info(additional=""):
-        Prints the person's name and age.
-    """
+class MsdLayer0(nn.Module):
+    """Creates the first layer of MsdNet"""
     def __init__(self, nplanes_list, in_shape, dropout = None, dropout_p = 0.5):
         super().__init__()
         in_channels = 3

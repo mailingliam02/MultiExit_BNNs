@@ -1,6 +1,5 @@
 from typing import Tuple
-
-
+# All of below functions are from https://github.com/mary-phuong/multiexit-distillation/blob/master/main.py
 def binary_accuracy(logit, y, apply_sigmoid=True, reduce=True) -> float:
     prob = logit.sigmoid() if apply_sigmoid else logit
     pred = prob.round().long().view(-1)

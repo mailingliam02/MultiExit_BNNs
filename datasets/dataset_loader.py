@@ -19,7 +19,8 @@ def get_dataloader(hyperparameters, random_seed = None):
     train_loader, val_loader, test_loader = dataset_loader.get_dataloaders()
     return train_loader, val_loader, test_loader 
 
-# Inspired by https://gist.github.com/kevinzakka/d33bf8d6c7f06a9d8c76d97a7879f5cb
+# Adapted from https://gist.github.com/kevinzakka/d33bf8d6c7f06a9d8c76d97a7879f5cb
+# General structure is the same but is changed for the datasets and transformations I need
 class DatasetLoader:
     def __init__(self,dataset_name= "cifar10", batch_size = (64,250,250), augment = True, random_seed = 42, valid_split = 0.2):
         self.dataset_name = dataset_name

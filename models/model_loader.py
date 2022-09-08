@@ -10,6 +10,8 @@ def dict_drop(dic, *keys):
             del new_dic[key]
     return new_dic
 
+# Inspired from how https://github.com/mary-phuong/multiexit-distillation/blob/master/main.py 
+# load their networks
 def get_network(network_hyperparams):
     if network_hyperparams["load_model"] is not None:
         if torch.cuda.is_available():

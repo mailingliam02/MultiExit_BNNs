@@ -5,6 +5,10 @@ import torch.nn.init as init
 import numpy as np
 from utils import dict_drop
 
+# Code for the ResNet 20 implementation
+# Mostly code from https://github.com/akamaster/pytorch_resnet_cifar10/blob/master/resnet.py and 
+# https://github.com/ajrcampbell/early-exit-ensembles/blob/main/src/models/res_net_18.py
+
 def get_res_net_20(ensemble, network_hyperparams):
     if ensemble is None:
         return ResNet20(**dict_drop(network_hyperparams,"call", "load_model",
@@ -20,7 +24,7 @@ def get_res_net_20(ensemble, network_hyperparams):
     elif ensemble == "mc_early_exit":
         return ResNet20MCEarlyExit(**dict_drop(network_hyperparams,"call", "load_model","resnet_type", "n_exits"))
 
-# https://github.com/akamaster/pytorch_resnet_cifar10/blob/master/resnet.py
+# Below functions and classes adapted from https://github.com/akamaster/pytorch_resnet_cifar10/blob/master/resnet.py
 def _weights_init(m):
     classname = m.__class__.__name__
     #print(classname)
@@ -154,7 +158,8 @@ class ResNet20(ResNet):
         super().__init__(BasicBlock, [3, 3, 3], *args,  **kwargs)
         self.n_exits = 1
 
-# https://github.com/ajrcampbell/early-exit-ensembles/blob/main/src/models/res_net_18.py
+# MC Early Exit and Early Exit class is adapted 
+# from https://github.com/ajrcampbell/early-exit-ensembles/blob/main/src/models/res_net_18.py
 class ResNet20EarlyExit(ResNet20):
     
     name = "res_net_20_early_exit"

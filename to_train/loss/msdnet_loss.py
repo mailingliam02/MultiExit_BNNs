@@ -2,7 +2,7 @@ import torch
 from torch.nn import functional as F
 from to_train.loss.base_classes import _MultiExitAccuracy
 
-
+# Classes are all from https://github.com/mary-phuong/multiexit-distillation/blob/master/main.py
 class ClassificationOnlyLoss(_MultiExitAccuracy):
     def __call__(self, net, X, y, *args):
         self._cache['logits_list'] = net(X)

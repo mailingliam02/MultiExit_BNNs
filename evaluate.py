@@ -3,6 +3,8 @@ import numpy as np
 from to_train.loss import dict_drop
 from to_train.train_utils import validate_model_acc, tab_str, get_device
 
+# Evaluation function is inspired from https://github.com/mary-phuong/multiexit-distillation/blob/master/evaluate.py
+# Includes heavy modifications to fit the more modular structure and MC dropout
 def evaluate(loss_fn, test_iter, model, gpu, experiment_id, mc_dropout_passes, create_log = True):
     # Is this needed again?
     net = model.to(get_device(gpu))

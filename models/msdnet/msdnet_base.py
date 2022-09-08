@@ -8,6 +8,8 @@ from models.msdnet.msdnet_utils import ConvBnRelu2d, View, MsdTransition, MsdJoi
 from models.msdnet.msdnet_layers import MsdLayer, MsdLayer0
 from models.mcdropout import get_dropout
 
+# Both of the below classes are from https://github.com/mary-phuong/multiexit-distillation/blob/master/main.py
+# The MSDNet class has been commented and conditionals to add dropout have been added
 class _TraceInForward(nn.Module):
     def forward(self, x, keep_layers=()):
         raise NotImplementedError

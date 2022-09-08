@@ -1,5 +1,5 @@
 
-
+# The dictionary set up of the various hyperparameters is from: https://github.com/mary-phuong/multiexit-distillation/blob/master/train_cifar.py
 def get_hyperparameters(args):
     # Main
     model_type = args.backbone

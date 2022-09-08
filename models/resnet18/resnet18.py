@@ -1,11 +1,12 @@
-# Original code: https://github.com/pytorch/vision/blob/master/torchvision/models/resnet.py
 import torch
 import torch.nn as nn
 import math
 import numpy as np
 import torch.nn.functional as F
 
-
+# Mostly adapted from https://github.com/hjdw2/Exit-Ensemble-Distillation/blob/main/resnet.py
+# Main ResNet class, BasicBlock and conv3x3 are from above, while the remaining
+# ResNet child classes are my own modifications of the ResNet class
 def conv3x3(in_planes, out_planes, stride=1):
     "3x3 convolution with padding"
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,

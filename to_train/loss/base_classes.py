@@ -3,6 +3,7 @@ import torch
 from torch.nn import functional as F
 from to_train.loss.loss_utils import binary_accuracy,multiclass_accuracies
 
+# Both classes are from: https://github.com/mary-phuong/multiexit-distillation/blob/master/main.py
 class _Loss:
     def __call__(self, net, *args):
         raise NotImplementedError

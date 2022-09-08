@@ -5,9 +5,9 @@ import random
 from torch.utils.data import Dataset
 from PIL import Image
 
-# Most of this class has been taken from https://github.com/linusericsson/ssl-transfer/tree/main/datasets/chestx.py
-# We change the arguments to match with the rest of our datasets and
-# add a train/test split
+# Most of this class has been taken from https://github.com/jonahanton/SSL_medicalimaging/blob/main/datasets/custom_chestx_dataset.py
+# which itself was adapted from https://github.com/linusericsson/ssl-transfer/tree/main/datasets/chestx.py
+# The splits are instead defined by patients rather than randomly dividing the images
 class CustomChestXDataset(Dataset):
     def __init__(self, root = "", train = False, transform=None, target_transform=None, download=False):
         """
