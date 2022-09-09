@@ -1,7 +1,7 @@
 # Combining Monte Carlo dropout with Early Exit Ensembling
 This github repo contains the codebase for the Imperial MSc AI Independent Project "Combining Monte Carlo dropout with Early Exit Ensembling".
 
-The primary inspiration from this code base, and the majority of the code for the MSDNet and the distillation loss is adapted from [Distillation-Based Training for Multi-Exit Architectures](https://ieeexplore.ieee.org/document/9009834)
+The primary inspiration from this code base, and the majority of the code for the MSDNet and the distillation loss is adapted from the codebase for [Distillation-Based Training for Multi-Exit Architectures](https://ieeexplore.ieee.org/document/9009834). A citation for this paper is given below:
 
 ```
 @INPROCEEDINGS{9009834,  author={Phuong, Mary and Lampert, Christoph},  
@@ -12,7 +12,7 @@ pages={1355-1364},
 doi={10.1109/ICCV.2019.00144}}
 ```
 
-The code for the ResNet and the bidirectional distillation loss is adapted from the codebase for paper [Students are the Best Teacher: Exit-Ensemble Distillation with Multi-Exits](https://arxiv.org/abs/2104.00299):
+The code for the ResNet and the bidirectional distillation loss is adapted from the codebase for paper [Students are the Best Teacher: Exit-Ensemble Distillation with Multi-Exits](https://arxiv.org/abs/2104.00299). A citation for this paper is given below:
 
 ```
 @misc{https://doi.org/10.48550/arxiv.2104.00299,
