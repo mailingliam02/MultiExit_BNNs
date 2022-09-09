@@ -1,13 +1,13 @@
 # Combining Monte Carlo dropout with Early Exit Ensembling
-This github repo contains the codebase for all experiments for the Independent Project `Combining Monte Carlo dropout with Early Exit Ensembling` (Imperial MSc AI 2022). <br />
+This github repo contains the codebase for all experiments for the Independent Project "Combining Monte Carlo dropout with Early Exit Ensembling" (Imperial MSc AI 2022).
 
 Abstract:
 `
-In this report, a novel method to improve uncertainty quantification in convolutional neural networks is tested. Monte Carlo dropout is combined with early exit ensembling, and is shown to improve both accuracy and uncertainty quantification across three different models and on Cifar100 and a medical chest x-ray dataset, ChestX-ray 14. On average, the expected calibration error was reduced by 50\%, 17.7\% and 16.7\% for the MSDNet, VGG-19 and ResNet-18 on Cifar100 over the best tested methods from the literature. For the chest x-ray dataset, the combination models can match the best methods from the literature, while needing 55\% fewer FLOPs. While the combination is found to outperform alternatives, it requires significant hyperparameter tuning to achieve optimal results. Further research is required to determine the best method for finding the best parameters. 
+In this report, a novel method to improve uncertainty quantification in convolutional neural networks is tested. Monte Carlo dropout is combined with early exit ensembling, and is shown to improve both accuracy and uncertainty quantification across three different models and on Cifar100 and a medical chest x-ray dataset, ChestX-ray 14. On average, the expected calibration error was reduced by 50%, 17.7% and 16.7% for the MSDNet, VGG-19 and ResNet-18 on Cifar100 over the best tested methods from the literature. For the chest x-ray dataset, the combination models can match the best methods from the literature, while needing 55% fewer FLOPs. While the combination is found to outperform alternatives, it requires significant hyperparameter tuning to achieve optimal results. Further research is required to determine the best method for finding the best parameters. 
 `
 
 This codebase is largely inspired from the following two sources:
-The code for the MSDNet and the distillation loss is adapted from [Distillation-Based Training for Multi-Exit Architectures](https://ieeexplore.ieee.org/document/9009834)
+The primary inspiration from this code base, and the majority of the code for the MSDNet and the distillation loss is adapted from [Distillation-Based Training for Multi-Exit Architectures](https://ieeexplore.ieee.org/document/9009834)
 
 ```
 @INPROCEEDINGS{9009834,  author={Phuong, Mary and Lampert, Christoph},  
@@ -69,22 +69,16 @@ python3 main.py --full_analysis_and_save True --backbone vgg19 --grad_clipping 0
 ## Datasets
 The data directory should be set up with the following structure:
 
-    ├── data
-        ├── chestx
-            ├── Data_Entry_2017.csv
-            ├── images
-        ├── CIFAR100
-            ├── cifar-100-batches-py
+├── chestx
+   ├── Data_Entry_2017.csv
+   ├── images
+├── CIFAR100
+   ├── cifar-100-batches-py
          
     
 Links for where to download each dataset are given here:
-[ChestX-ray14](https://www.kaggle.com/nih-chest-xrays/data),
-[CIFAR100](https://pytorch.org/vision/stable/datasets.html),
+ChestX-ray 14: https://www.kaggle.com/nih-chest-xrays/data,
+Cifar100: https://pytorch.org/vision/stable/datasets.html,
 
-### Note:
-
-**ChestX**: When unpacking into the chestx directory, the various image folders (images_001, images_002,...,images_012) were combined so that all image files were contained directly in a single images directory as in the above structure. This can be done by repeated usage of:
-```
-mv images_0XX/* images/
-```
+To get the ChestX-ray 14 dataset in the correct format, each of the image folders which are unpacked from the download (images_001, images_002,...) need to be combined into a single folder "images".
 
