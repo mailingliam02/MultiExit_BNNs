@@ -25,6 +25,7 @@ The code for the ResNet and the bidirectional distillation loss is adapted from 
   copyright = {Creative Commons Attribution 4.0 International}
 }
 ```
+The structure of this README and the ChestX-ray 14 dataset loader file were adapted from https://github.com/jonahanton/SSL_medicalimaging
 
 ## How to Run
 To run the repository, run the following commands from the repo base folder:
