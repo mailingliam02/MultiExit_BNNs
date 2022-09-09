@@ -64,11 +64,11 @@ python3 main.py --full_analysis_and_save True --backbone vgg19 --grad_clipping 0
 ## Datasets
 The data directory should be set up with the following structure:
 
-├── chestx
-   ├── Data_Entry_2017.csv
-   ├── images
-├── CIFAR100
-   ├── cifar-100-batches-py
+    ├── chestx
+       ├── Data_Entry_2017.csv
+       ├── images
+    ├── CIFAR100
+       ├── cifar-100-batches-py
          
     
 Links for where to download each dataset are given here:
