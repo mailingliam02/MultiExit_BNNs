@@ -1,5 +1,5 @@
 # Combining Monte Carlo dropout with Early Exit Ensembling
-This github repo contains the codebase for all experiments for the Imperial MSc AI Independent Project "Combining Monte Carlo dropout with Early Exit Ensembling".
+This github repo contains the codebase for the Imperial MSc AI Independent Project "Combining Monte Carlo dropout with Early Exit Ensembling".
 
 The primary inspiration from this code base, and the majority of the code for the MSDNet and the distillation loss is adapted from [Distillation-Based Training for Multi-Exit Architectures](https://ieeexplore.ieee.org/document/9009834)
 
@@ -61,7 +61,7 @@ python3 main.py --full_analysis_and_save True --backbone vgg19 --grad_clipping 0
 ```
  
 ## Datasets
-The data directory should be set up like the below:
+The data folder should be made to look like the below:
 
     ├── chestx
        ├── Data_Entry_2017.csv
@@ -70,7 +70,7 @@ The data directory should be set up like the below:
        ├── cifar-100-batches-py
          
     
-Links for where to download each dataset are given here:
+The datasets can be downloaded here:
 ChestX-ray 14: https://www.kaggle.com/nih-chest-xrays/data,
 Cifar100: https://pytorch.org/vision/stable/datasets.html,
 
