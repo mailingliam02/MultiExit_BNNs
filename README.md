@@ -67,7 +67,7 @@ The data directory should be set up with the following structure:
     ├── chestx
        ├── Data_Entry_2017.csv
        ├── images
-    ├── CIFAR100
+    ├── cifar100
        ├── cifar-100-batches-py
          
     
