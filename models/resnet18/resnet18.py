@@ -86,34 +86,35 @@ class Bottleneck(nn.Module):
 class ResNet(nn.Module):
     def __init__(self, block=BasicBlock, num_blocks=[2,2,2,2], num_classes=100):
         super(ResNet, self).__init__()
-        self.inplanes = 64
+        base_filter = 16
+        self.inplanes = base_filter
 
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(64)
+        self.conv1 = nn.Conv2d(3, base_filter, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(base_filter)
         self.relu = nn.ReLU(inplace=False)
-        self.layer1 = self._make_layer(block, 64, num_blocks[0], stride=1)
-        self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
-        self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
-        self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
-        self.linear = nn.Linear(512*block.expansion, num_classes)
+        self.layer1 = self._make_layer(block, base_filter, num_blocks[0], stride=1)
+        self.layer2 = self._make_layer(block, 2*base_filter, num_blocks[1], stride=2)
+        self.layer3 = self._make_layer(block, 4*base_filter, num_blocks[2], stride=2)
+        self.layer4 = self._make_layer(block, 8*base_filter, num_blocks[3], stride=2)
+        self.linear = nn.Linear(8*base_filter*block.expansion, num_classes)
 
-        self.ex1conv1 = nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1, bias=False)
-        self.ex1conv2 = nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1, bias=False)
-        self.ex1conv3 = nn.Conv2d(256, 512, kernel_size=3, stride=2, padding=1, bias=False)
-        self.ex1bn1 = nn.BatchNorm2d(128)
-        self.ex1bn2 = nn.BatchNorm2d(256)
-        self.ex1bn3 = nn.BatchNorm2d(512)
-        self.ex1linear = nn.Linear(512, num_classes)
+        self.ex1conv1 = nn.Conv2d(base_filter, 2*base_filter, kernel_size=3, stride=2, padding=1, bias=False)
+        self.ex1conv2 = nn.Conv2d(2*base_filter, 4*base_filter, kernel_size=3, stride=2, padding=1, bias=False)
+        self.ex1conv3 = nn.Conv2d(4*base_filter, 8*base_filter, kernel_size=3, stride=2, padding=1, bias=False)
+        self.ex1bn1 = nn.BatchNorm2d(2*base_filter)
+        self.ex1bn2 = nn.BatchNorm2d(4*base_filter)
+        self.ex1bn3 = nn.BatchNorm2d(8*base_filter)
+        self.ex1linear = nn.Linear(8*base_filter, num_classes)
 
-        self.ex2conv1 = nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1, bias=False)
-        self.ex2conv2 = nn.Conv2d(256, 512, kernel_size=3, stride=2, padding=1, bias=False)
-        self.ex2bn1 = nn.BatchNorm2d(256)
-        self.ex2bn2 = nn.BatchNorm2d(512)
-        self.ex2linear = nn.Linear(512, num_classes)
+        self.ex2conv1 = nn.Conv2d(2*base_filter, 4*base_filter, kernel_size=3, stride=2, padding=1, bias=False)
+        self.ex2conv2 = nn.Conv2d(4*base_filter, 8*base_filter, kernel_size=3, stride=2, padding=1, bias=False)
+        self.ex2bn1 = nn.BatchNorm2d(4*base_filter)
+        self.ex2bn2 = nn.BatchNorm2d(8*base_filter)
+        self.ex2linear = nn.Linear(8*base_filter, num_classes)
 
-        self.ex3conv1 = nn.Conv2d(256, 512, kernel_size=3, stride=2, padding=1, bias=False)
-        self.ex3bn1 = nn.BatchNorm2d(512)
-        self.ex3linear = nn.Linear(512, num_classes)
+        self.ex3conv1 = nn.Conv2d(4*base_filter, 8*base_filter, kernel_size=3, stride=2, padding=1, bias=False)
+        self.ex3bn1 = nn.BatchNorm2d(8*base_filter)
+        self.ex3linear = nn.Linear(8*base_filter, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -178,7 +179,7 @@ class ResNet(nn.Module):
         return [out1, out2, out3, out]
 
 class ResNet18EarlyExitLee(ResNet):
-    def __init__(self,n_exits = 4, out_dim = 100, *args,  **kwargs):
+    def __init__(self,n_exits = 4, out_dim = 100, image_size = 32, *args,  **kwargs):
         super().__init__(block=BasicBlock, num_blocks=[2,2,2,2], num_classes=out_dim, *args,  **kwargs)
         self.n_exits = n_exits
         self.out_dim = out_dim

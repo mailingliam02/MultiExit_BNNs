@@ -82,7 +82,7 @@ def get_network_hyperparameters(model_type, args, dataset_image_size, dataset_ou
         elif args.dropout_exit or args.dropout_type is not None:
             hyperparams["resnet_type"] = "mc_early_exit"
 
-    elif model_type == "resnet18" or model_type == "vgg19":
+    elif model_type == "resnet18" or model_type == "vgg19" or model_type == "vgg11":
         hyperparams = dict(
             call = "ResNet18",
             resnet_type = "early_exit",
@@ -96,6 +96,9 @@ def get_network_hyperparameters(model_type, args, dataset_image_size, dataset_ou
         if model_type == "vgg19":
             hyperparams["call"] = "VGG19"
             hyperparams["n_exits"] = 5
+        elif model_type == "vgg11":
+            hyperparams["call"] = "VGG11"
+            hyperparams["n_exits"] = 5            
             
         if args.single_exit and (args.dropout_exit or args.dropout_type is not None):
             hyperparams["resnet_type"] = "mc"
@@ -146,7 +149,7 @@ def get_loss_hyperparameters(num_exits, model_type, args, loss_type = "distillat
                 n_exits = num_exits,
                 acc_tops = [1, 5],
             )
-    elif model_type == "resnet18" or model_type == "vgg19":
+    elif model_type == "resnet18" or model_type == "vgg19" or model_type == "vgg11":
         loss = dict(
             call = "ExitEnsembleDistillation",
             n_exits = num_exits,
@@ -197,7 +200,7 @@ def get_opt_sched_hyperparameters(args):
     #gamma = 0.1
     )
     
-    if args.backbone == "vgg19":
+    if args.backbone == "vgg19" or args.backbone == "vgg11":
         cf_opt = dict(          # optimization method
         call = 'SGD',
         lr = 0.1, # Note this is from Paper 9 (Paper 10 used 0.1)
@@ -259,7 +262,7 @@ def get_loader_hyperparameters(args):
         augment = True,
         val_split = args.val_split,
         )
-    if args.backbone == "resnet18" or args.backbone == "resnet20" or args.backbone == "vgg19":
+    if args.backbone == "resnet18" or args.backbone == "resnet20" or args.backbone == "vgg19" or args.backbone == "vgg11":
         hyperparameters["batch_size"] = (128,128,250)
         
     if hyperparameters["dataset_name"] == "chestx":

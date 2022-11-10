@@ -6,7 +6,8 @@ import types
 import numpy as np
 from torch import nn
 from KDEpy import FFTKDE
-from models.vgg.vgg19 import VGG19EarlyExit, VGG19MC, VGG
+from models.vgg.vgg19 import VGG19EarlyExit, VGG19MC
+from models.vgg.vgg11 import VGG11EarlyExit, VGG11MC, VGG
 from models.resnet18.resnet18 import ResNet18EarlyExitLee, ResNet18MC, ResNet
 from models.msdnet.msdnet_base import MsdNet
 from hyperparameters import get_hyperparameters
@@ -65,6 +66,8 @@ class FullAnalysis():
 
     def update_model_exits(self):
         if self.model.n_exits == 1 and (isinstance(self.model, VGG19EarlyExit) or isinstance(self.model, VGG19MC)):
+            self.model.n_exits = 5
+        elif self.model.n_exits == 1 and (isinstance(self.model, VGG11EarlyExit) or isinstance(self.model, VGG11MC)):
             self.model.n_exits = 5
         elif self.model.n_exits == 1 and (isinstance(self.model, ResNet18EarlyExitLee) or isinstance(self.model, ResNet18MC)):
             self.model.n_exits = 4
@@ -580,6 +583,11 @@ class FullAnalysis():
             self.flops_per_layer = [40173568,	56950784,	132448256,	132284416,	37789696]
             self.flop_per_exit_convs = [14227456,	9467904,	4728832,	0,	0]
             self.flops_per_exit = [51200,	51200,	51200,	51200,	51200]
+        elif self.model_type == "vgg11":
+            self.n_exits = 5
+            self.flops_per_layer = [40173568,	56950784,	132448256,	132284416,	37789696]
+            self.flop_per_exit_convs = [14227456,	9467904,	4728832,	0,	0]
+            self.flops_per_exit = [51200,	51200,	51200,	51200,	51200]
         elif self.model_type == "resnet18":
             self.n_exits = 4
             self.flops_per_layer =[154402816,	135036928,	134627328,	134422528]
@@ -605,6 +613,8 @@ class FullAnalysis():
 
     def get_model_type(self):
         if isinstance(self.model,VGG):
+            return "vgg11"
+        elif isinstance(self.model,VGG):
             return "vgg19"
         elif isinstance(self.model,ResNet):
             return "resnet18"
@@ -648,7 +658,7 @@ class FullAnalysis():
         for layer in range(1,self.n_exits):
             for instance in instances:
                 if layer == self.n_exits - 1:
-                    if self.model_type == "msdnet" or self.model_type == "vgg19" or self.model_type == "resnet18":
+                    if self.model_type == "msdnet" or self.model_type == "vgg19" or self.model_type == "vgg11" or self.model_type == "resnet18":
                         block_flops = sum(self.flops_per_layer[:layer+1])
                     else:
                         block_flops = sum(self.flops_per_layer[:layer])
@@ -685,7 +695,7 @@ class FullAnalysis():
             for instance in instances:
                 if layer == self.n_exits - 1:
                     counter += 1
-                    if self.model_type == "msdnet" or self.model_type == "vgg19" or self.model_type == "resnet18":
+                    if self.model_type == "msdnet" or self.model_type == "vgg19" or self.model_type == "vgg11" or self.model_type == "resnet18":
                         flop_instance = sum(self.flops_per_layer[:layer+1])
                     else:
                         flop_instance = sum(self.flops_per_layer[:layer])

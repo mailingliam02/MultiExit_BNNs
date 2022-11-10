@@ -42,7 +42,7 @@ class DatasetLoader:
             self.train_sampler = None
 
     def _sampler_needed(self):
-        datasets_without_val = ["cifar10","cifar100","imagenet"]
+        datasets_without_val = ["cifar10","cifar100","imagenet","svhn"]
         if self.dataset_name in datasets_without_val:
             self.shuffle = False
             return True
@@ -57,6 +57,9 @@ class DatasetLoader:
         elif self.dataset_name == "cifar100":
             self.mean=[0.5071, 0.4865, 0.4409]
             self.std=[0.2673, 0.2564, 0.2762]
+        elif self.dataset_name == "svhn":
+            self.mean = tuple([x / 255 for x in [129.3, 124.1, 112.4]])
+            self.std = tuple([x / 255 for x in [68.2, 65.4, 70.4]])
         elif self.dataset_name == "chestx":
             # From here: https://github.com/arnoweng/CheXNet/blob/master/model.py
             # Using imagenet as using pretrained weights
@@ -120,29 +123,63 @@ class DatasetLoader:
         if self.dataset_name == "cifar10":
             self.train_set = datasets.CIFAR10(
                 root=self.data_dir, train=True,
-                download=False, transform=self.train_transforms,
+                download=True, transform=self.train_transforms,
             )
             self.val_set = datasets.CIFAR10(
                 root=self.data_dir, train=True,
-                download=False, transform=self.val_transforms,
+                download=True, transform=self.val_transforms,
             )
             self.test_set = datasets.CIFAR10(
                 root=self.data_dir, train=False,
-                download=False, transform=self.test_transforms,
+                download=True, transform=self.test_transforms,
             )
         elif self.dataset_name == "cifar100":
             self.train_set = datasets.CIFAR100(
                 root=self.data_dir, train=True,
-                download=False, transform=self.train_transforms,
+                download=True, transform=self.train_transforms,
             )
             self.val_set = datasets.CIFAR100(
                 root=self.data_dir, train=True,
-                download=False, transform=self.val_transforms,
+                download=True, transform=self.val_transforms,
             )
             self.test_set = datasets.CIFAR100(
                 root=self.data_dir, train=False,
-                download=False, transform=self.test_transforms,
+                download=True, transform=self.test_transforms,
             )
+        elif self.dataset_name == "svhn":
+            # Train 
+            train_transform = []
+            train_transform.append(transforms.RandomCrop(32, padding=4))
+            train_transform.append(transforms.RandomHorizontalFlip())
+            train_transform.append(transforms.ToTensor())
+            train_transform.append(transforms.Normalize(self.mean, self.std))
+            train_transform.append(transforms.RandomErasing())
+
+            self.train_transform = transforms.Compose(train_transform) # Override here
+
+            self.train_set = datasets.SVHN(root=self.data_dir, split='train',
+                                        download=True, transform=self.train_transform)
+
+            # Val Split
+            val_transform = []
+            val_transform.append(transforms.RandomCrop(32, padding=4))
+            val_transform.append(transforms.ToTensor())
+            val_transform.append(transforms.Normalize(self.mean, self.std))
+
+            self.val_transform = transforms.Compose(val_transform) # Override here
+            self.val_set = datasets.SVHN(root=self.data_dir, split='train',
+                                        download=True, transform=self.val_transform)
+
+            # Test Split
+            test_transform = []
+            test_transform += [transforms.ToTensor(),
+                            transforms.Normalize(self.mean, self.std)]
+
+            self.test_transform = transforms.Compose(test_transform) # Override here
+
+            self.test_set = datasets.SVHN(root=self.data_dir, split='test',
+                                    download=True, transform=self.test_transform)
+
         elif self.dataset_name == "chestx":
             self.train_set = CustomChestXDataset(root=self.data_dir, train="train",
                 download=False, transform=self.train_transforms)
