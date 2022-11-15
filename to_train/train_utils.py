@@ -89,4 +89,4 @@ def plot_loss(train_losses, val_losses, experiment_id):
     x = np.linspace(0,len(val_losses), num = len(train_losses))
     plt.scatter(x_val, val_losses, zorder = 10)
     plt.scatter(x,train_losses, zorder = 1)
-    plt.savefig("./MultiExit_BNNs/snapshots/figures/loss_curve_"+str(experiment_id)+".png")
+    plt.savefig("./snapshots/figures/loss_curve_"+str(experiment_id)+".png")

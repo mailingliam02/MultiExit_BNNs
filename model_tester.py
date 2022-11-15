@@ -547,6 +547,9 @@ class FullAnalysis():
         self.model_type = self.get_model_type()
         self.exit_only, dropout_rate, mc_passes = self.get_dropout_type()
         self.get_flops_per_module()
+        # Break if Single Exit
+        if self.model.n_exits == 1:
+            return None
         with open(f"test_predictions_{model_num}.npy", 'rb') as file:
             p_evals = np.load(file)
             ensembled_p_evals = np.load(file)
