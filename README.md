@@ -1,6 +1,19 @@
 # Combining Monte Carlo dropout with Early Exit Ensembling
-This github repo contains the codebase for the Imperial MSc AI Independent Project "Combining Monte Carlo dropout with Early Exit Ensembling".
-
+This github repo contains the codebase for the Imperial MSc AI Independent Project "Combining Monte Carlo dropout with Early Exit Ensembling". The full dissertation is available under MSc_Dissertation_Final.pdf. 
+Abstract:
+```
+In this report, a novel method to improve uncertainty quantification in convolutional
+neural networks is tested. Monte Carlo dropout is combined with early exit ensembling,
+and is shown to improve both accuracy and uncertainty quantification across
+three different models and on Cifar100 and a medical chest x-ray dataset, ChestXray
+14. On average, the expected calibration error was reduced by 50%, 17.7% and
+16.7% for the MSDNet, VGG-19 and ResNet-18 on Cifar100 over the best tested
+methods from the literature. For the chest x-ray dataset, the combination models
+can match the best methods from the literature, while needing 55% fewer FLOPs.
+However, while the combination approach is found to outperform alternatives, it requires
+significant hyperparameter tuning to achieve optimal results which may limit
+its practical applicability in some domains.
+```
 The primary inspiration from this code base, and the majority of the code for the MSDNet and the distillation loss is adapted from the codebase for [Distillation-Based Training for Multi-Exit Architectures](https://ieeexplore.ieee.org/document/9009834). A citation for this paper is given below:
 
 ```
