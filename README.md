@@ -46,7 +46,7 @@ The structure of this README and the ChestX-ray 14 dataset loader file were adap
 To run the repository, run the following commands from the repo base folder:
 
 ```
-pip install requirements.txt
+pip install -r requirements.txt
 mkdir snapshots
 mkdir runs_db
 mkdir snapshots/figures
