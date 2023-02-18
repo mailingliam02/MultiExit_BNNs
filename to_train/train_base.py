@@ -72,7 +72,7 @@ def train_loop(model, optimizer, scheduler,  data_loaders, loss_fn, experiment_i
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             counter = 0
-            torch.save(model, "./MultiExit_BNNs/snapshots/best_val_model_"+str(experiment_id))
+            torch.save(model, "./snapshots/best_val_model_"+str(experiment_id))
         else:
             counter += 1
             if counter > patience:
