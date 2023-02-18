@@ -46,10 +46,10 @@ The structure of this README and the ChestX-ray 14 dataset loader file were adap
 To run the repository, run the following commands from the repo base folder:
 
 ```
-pip install -r requirements.txt
 pip install https://download.pytorch.org/whl/cu113/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 pip install https://download.pytorch.org/whl/cu113/torchaudio-0.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 pip install https://download.pytorch.org/whl/cu113/torchvision-0.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
+pip install -r requirements.txt
 mkdir snapshots
 mkdir snapshots/figures
 mkdir models/model_weights
