@@ -51,7 +51,6 @@ pip install https://download.pytorch.org/whl/cu113/torch-1.11.0%2Bcu113-cp38-cp3
 pip install https://download.pytorch.org/whl/cu113/torchaudio-0.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 pip install https://download.pytorch.org/whl/cu113/torchvision-0.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 mkdir snapshots
-mkdir runs_db
 mkdir snapshots/figures
 mkdir models/model_weights
 ```
