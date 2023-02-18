@@ -120,7 +120,7 @@ class DatasetLoader:
         if self.dataset_name == "cifar10":
             self.train_set = datasets.CIFAR10(
                 root=self.data_dir, train=True,
-                download=False, transform=self.train_transforms,
+                download=True, transform=self.train_transforms,
             )
             self.val_set = datasets.CIFAR10(
                 root=self.data_dir, train=True,
@@ -133,7 +133,7 @@ class DatasetLoader:
         elif self.dataset_name == "cifar100":
             self.train_set = datasets.CIFAR100(
                 root=self.data_dir, train=True,
-                download=False, transform=self.train_transforms,
+                download=True, transform=self.train_transforms,
             )
             self.val_set = datasets.CIFAR100(
                 root=self.data_dir, train=True,
